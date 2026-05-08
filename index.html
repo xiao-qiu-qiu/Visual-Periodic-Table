@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>高中元素周期表可视化</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151a24'/%3E%3Ccircle cx='22' cy='24' r='10' fill='%2349b6a8'/%3E%3Ccircle cx='42' cy='40' r='12' fill='%23f2b84b'/%3E%3Cpath d='M17 48h30' stroke='%23f7f3ea' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-labelledby="page-title">
+        <div class="title-block">
+          <p class="eyebrow">高中化学 · 元素性质趋势</p>
+          <h1 id="page-title">可视化元素周期表</h1>
+        </div>
+
+        <div class="controls" aria-label="周期表控制">
+          <label class="search-box">
+            <span>搜索</span>
+            <input id="searchInput" type="search" placeholder="元素名 / 符号 / 原子序数" autocomplete="off" />
+          </label>
+
+          <label class="select-box">
+            <span>族</span>
+            <select id="groupSelect">
+              <option value="all">全部</option>
+              <option value="1">IA 碱金属</option>
+              <option value="2">IIA 碱土金属</option>
+              <option value="17">VIIA 卤族</option>
+              <option value="18">0 族 / 稀有气体</option>
+              <option value="d">过渡金属</option>
+              <option value="f">镧系 / 锕系</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="mode-strip" aria-label="显示模式">
+        <button class="mode-button active" data-mode="category" type="button">分类</button>
+        <button class="mode-button" data-mode="electronegativity" type="button">电负性</button>
+        <button class="mode-button" data-mode="ionization" type="button">第一电离能</button>
+        <button class="mode-button" data-mode="radius" type="button">原子半径</button>
+        <button class="mode-button" data-mode="metallicity" type="button">金属性</button>
+        <button class="mode-button" data-mode="phase" type="button">常温状态</button>
+      </section>
+
+      <section class="workspace">
+        <div class="periodic-panel">
+          <div class="group-labels" id="groupLabels" aria-hidden="true"></div>
+          <div class="period-labels" id="periodLabels" aria-hidden="true"></div>
+          <div class="table-grid" id="periodicTable" aria-label="元素周期表"></div>
+        </div>
+
+        <aside class="detail-panel" aria-live="polite">
+          <div class="detail-head">
+            <span id="detailNumber" class="atomic-number">1</span>
+            <div>
+              <p id="detailCategory" class="detail-category">非金属</p>
+              <h2 id="detailSymbol">H</h2>
+            </div>
+          </div>
+          <h3 id="detailName">氢</h3>
+          <p id="detailSummary" class="summary">
+            最轻的元素，位于第 1 周期、第 1 族。高中阶段常用来理解原子结构、共价键和酸碱反应。
+          </p>
+          <dl class="fact-list">
+            <div><dt>电负性</dt><dd id="detailEN">2.20</dd></div>
+            <div><dt>第一电离能</dt><dd id="detailIE">1312 kJ/mol</dd></div>
+            <div><dt>原子半径</dt><dd id="detailRadius">53 pm</dd></div>
+            <div><dt>常温状态</dt><dd id="detailPhase">气体</dd></div>
+          </dl>
+          <div class="mini-chart" aria-hidden="true">
+            <span id="barEN"></span>
+            <span id="barIE"></span>
+            <span id="barRadius"></span>
+          </div>
+        </aside>
+      </section>
+
+      <section class="insight-panel">
+        <div>
+          <h2 id="modeTitle">按元素类别着色</h2>
+          <p id="modeDescription">
+            颜色展示金属、非金属、卤素、稀有气体等类别。先看“分区”，再切换到具体性质，更容易理解周期律。
+          </p>
+        </div>
+        <div class="legend" id="legend"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
