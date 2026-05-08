@@ -214,7 +214,7 @@ h1 {
   grid-template-rows: 12px 24px 13px 17px;
   border: 1px solid rgba(25, 32, 42, 0.12);
   padding: 4px 6px 3px;
-  color: var(--ink);
+  color: var(--cell-ink, var(--ink));
   background: var(--cell-bg);
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease, opacity 160ms ease;
@@ -240,7 +240,7 @@ h1 {
   grid-row: 1;
   grid-column: 1;
   justify-self: start;
-  color: rgba(25, 32, 42, 0.68);
+  color: var(--cell-muted, rgba(25, 32, 42, 0.68));
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -258,7 +258,7 @@ h1 {
   grid-row: 3;
   grid-column: 1;
   overflow: hidden;
-  color: rgba(25, 32, 42, 0.74);
+  color: var(--cell-muted, rgba(25, 32, 42, 0.74));
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1.05;
@@ -275,8 +275,8 @@ h1 {
   overflow: hidden;
   border-radius: 999px;
   padding: 2px 4px 3px;
-  color: rgba(25, 32, 42, 0.72);
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--badge-ink, rgba(25, 32, 42, 0.72));
+  background: var(--badge-bg, rgba(255, 255, 255, 0.5));
   font-size: 0.58rem;
   font-weight: 800;
   line-height: 1.05;

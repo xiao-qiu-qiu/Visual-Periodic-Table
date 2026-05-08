@@ -219,6 +219,15 @@ const ranges = {
   metallicity: [0, 1],
 };
 
+const palettes = {
+  electronegativity: ["#e8f7f4", "#8ed8c9", "#2fa697", "#e3bd45", "#dd5a67"],
+  ionization: ["#eef2ff", "#a8c2ff", "#5f86df", "#6a52ad", "#301f67"],
+  radius: ["#eaf4ff", "#9fc9ed", "#5da4ac", "#e3b64b", "#d86b45"],
+  metallicity: ["#edf4f2", "#9fcfbd", "#56a178", "#dcaa3a", "#dc6a33"],
+};
+
+const visualRanges = {};
+
 const state = {
   mode: "category",
   selected: elements[0],
@@ -257,15 +266,53 @@ function metallicity(element) {
   return Math.max(0, Math.min(1, categoryBoost * 0.62 + periodScore * 0.23 + groupScore * 0.15));
 }
 
+function buildVisualRanges() {
+  ["electronegativity", "ionization", "radius"].forEach((mode) => {
+    const values = elements
+      .map((element) => element[mode])
+      .filter((value) => value !== null)
+      .sort((a, b) => a - b);
+    const lower = values[Math.floor(values.length * 0.04)];
+    const upper = values[Math.ceil(values.length * 0.96) - 1];
+    visualRanges[mode] = [lower, upper];
+  });
+  visualRanges.metallicity = [0, 1];
+}
+
+function mixHex(a, b, t) {
+  const left = a.match(/\w\w/g).map((part) => parseInt(part, 16));
+  const right = b.match(/\w\w/g).map((part) => parseInt(part, 16));
+  const mixed = left.map((value, index) => Math.round(value + (right[index] - value) * t));
+  return `#${mixed.map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function luminance(hex) {
+  const [r, g, b] = hex
+    .replace("#", "")
+    .match(/\w\w/g)
+    .map((part) => parseInt(part, 16) / 255)
+    .map((channel) => (channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function applyTextContrast(card, background) {
+  const isDark = background.startsWith("#") && luminance(background) < 0.24;
+  card.style.setProperty("--cell-ink", isDark ? "#f8fbff" : "#19202a");
+  card.style.setProperty("--cell-muted", isDark ? "rgba(248, 251, 255, 0.82)" : "rgba(25, 32, 42, 0.72)");
+  card.style.setProperty("--badge-ink", isDark ? "#162033" : "rgba(25, 32, 42, 0.72)");
+  card.style.setProperty("--badge-bg", isDark ? "rgba(255, 255, 255, 0.82)" : "rgba(255, 255, 255, 0.5)");
+}
+
 function heatColor(value, mode) {
   if (value === null || Number.isNaN(value)) return "#d1d5db";
-  const [min, max] = ranges[mode];
+  const [min, max] = visualRanges[mode] || ranges[mode];
   const raw = (value - min) / (max - min);
   const t = Math.max(0, Math.min(1, raw));
-  const hue = 208 - t * 178;
-  const saturation = 52 + t * 24;
-  const lightness = 86 - t * 42;
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+  const eased = Math.pow(t, 0.72);
+  const palette = palettes[mode] || palettes.electronegativity;
+  const scaled = eased * (palette.length - 1);
+  const index = Math.min(palette.length - 2, Math.floor(scaled));
+  return mixHex(palette[index], palette[index + 1], scaled - index);
 }
 
 function valueForMode(element) {
@@ -356,7 +403,9 @@ function renderTable() {
     card.dataset.z = element.z;
     card.style.gridRow = row;
     card.style.gridColumn = col;
-    card.style.setProperty("--cell-bg", colorForElement(element));
+    const color = colorForElement(element);
+    card.style.setProperty("--cell-bg", color);
+    applyTextContrast(card, color);
     card.setAttribute("aria-label", `${element.name}，${element.symbol}，原子序数 ${element.z}，${formatValue(element)}`);
     card.innerHTML = `
       <span class="number">${element.z}</span>
@@ -439,7 +488,8 @@ function renderLegend() {
   }
   const items = state.mode === "radius" ? ["小", "中", "大"] : ["低", "中", "高"];
   items.forEach((label, index) => {
-    const value = ranges[state.mode][0] + (ranges[state.mode][1] - ranges[state.mode][0]) * (index / 2);
+    const range = visualRanges[state.mode] || ranges[state.mode];
+    const value = range[0] + (range[1] - range[0]) * (index / 2);
     addLegendItem(heatColor(value, state.mode), label);
   });
 }
@@ -465,7 +515,17 @@ groupSelect.addEventListener("change", (event) => {
   applyFilters();
 });
 
+const requestedMode =
+  typeof window === "undefined"
+    ? ""
+    : new URLSearchParams(window.location.search).get("mode") || window.location.hash.replace("#", "");
+
+buildVisualRanges();
 createLabels();
-renderLegend();
-renderTable();
+if (modeMeta[requestedMode]) {
+  updateMode(requestedMode);
+} else {
+  renderLegend();
+  renderTable();
+}
 updateDetail();
