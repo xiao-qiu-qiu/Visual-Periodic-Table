@@ -54,26 +54,55 @@ const blockColors = {
   f: "#d79561",
 };
 
-const groupLabels = [
-  "IA",
-  "IIA",
-  "IIIB",
-  "IVB",
-  "VB",
-  "VIB",
-  "VIIB",
-  "VIIIB",
-  "VIIIB",
-  "VIIIB",
-  "IB",
-  "IIB",
-  "IIIA",
-  "IVA",
-  "VA",
-  "VIA",
-  "VIIA",
-  "VIIIA",
+const blockGuides = [
+  { key: "s", label: "s", row: 1, col: 1, rows: 7, cols: 2, side: "s" },
+  { key: "d", label: "d", row: 4, col: 3, rows: 4, cols: 8, side: "top" },
+  { key: "ds", label: "sd", row: 4, col: 11, rows: 4, cols: 2, side: "top" },
+  { key: "p", label: "p", row: 2, col: 13, rows: 6, cols: 6, side: "p" },
+  { key: "f", label: "f", row: 8, col: 3, rows: 2, cols: 15, side: "left" },
 ];
+
+const groupLabelGuides = [
+  { label: "IA", col: 1 },
+  { label: "IIA", col: 2 },
+  { label: "IIIB", col: 3 },
+  { label: "IVB", col: 4 },
+  { label: "VB", col: 5 },
+  { label: "VIB", col: 6 },
+  { label: "VIIB", col: 7 },
+  { label: "VIII", col: 8, span: 3 },
+  { label: "IB", col: 11 },
+  { label: "IIB", col: 12 },
+  { label: "IIIA", col: 13 },
+  { label: "IVA", col: 14 },
+  { label: "VA", col: 15 },
+  { label: "VIA", col: 16 },
+  { label: "VIIA", col: 17 },
+  { label: "0族", col: 18 },
+];
+
+const periodNames = ["", "第一周期", "第二周期", "第三周期", "第四周期", "第五周期", "第六周期", "第七周期"];
+
+const groupNames = {
+  1: "IA",
+  2: "IIA",
+  3: "IIIB",
+  4: "IVB",
+  5: "VB",
+  6: "VIB",
+  7: "VIIB",
+  8: "VIII",
+  9: "VIII",
+  10: "VIII",
+  11: "IB",
+  12: "IIB",
+  13: "IIIA",
+  14: "IVA",
+  15: "VA",
+  16: "VIA",
+  17: "VIIA",
+  18: "0族",
+};
 
 const modeMeta = {
   category: {
@@ -103,7 +132,7 @@ const modeMeta = {
   },
   block: {
     title: "电子分区：s、d、sd、p、f 区",
-    description: "按高中常见分区着色。s 区在左侧，p 区在右侧，d 区和 sd 区位于过渡金属区域，f 区单独展开在下方。",
+    description: "按高中常见分区着色，并用外框标出每个分区的位置。s 区在左侧，p 区在右侧，d 区和 sd 区位于过渡金属区域，f 区单独展开在下方。",
     unit: "",
   },
   melting: {
@@ -516,6 +545,15 @@ function formatValue(element) {
   return `${value}${unit ? ` ${unit}` : ""}`;
 }
 
+function formatPeriod(element) {
+  return periodNames[element.period] || `第 ${element.period} 周期`;
+}
+
+function formatGroup(element) {
+  const group = groupNames[element.group] || `${element.group}`;
+  return group === "0族" ? group : `第${group}族`;
+}
+
 function formatTemperature(value) {
   if (value === null || Number.isNaN(value)) return "暂无常用值";
   const rounded = Math.abs(value) >= 100 ? Math.round(value) : Number(value.toFixed(2));
@@ -550,17 +588,17 @@ function createLabels() {
   const groupLabelContainer = document.querySelector("#groupLabels");
   const periodLabels = document.querySelector("#periodLabels");
 
-  for (let group = 1; group <= 18; group += 1) {
+  groupLabelGuides.forEach((group) => {
     const label = document.createElement("div");
-    label.className = "group-label";
-    label.textContent = groupLabels[group - 1];
-    label.style.gridColumn = group;
+    label.className = group.span ? "group-label group-label--span" : "group-label";
+    label.textContent = group.label;
+    label.style.gridColumn = group.span ? `${group.col} / span ${group.span}` : group.col;
     groupLabelContainer.append(label);
-  }
+  });
 
-  ["1", "2", "3", "4", "5", "6", "7", "镧", "锕"].forEach((period, index) => {
+  [...periodNames.slice(1), "镧系", "锕系"].forEach((period, index) => {
     const label = document.createElement("div");
-    label.className = "period-label";
+    label.className = index < 7 ? "period-label period-label--period" : "period-label period-label--series";
     label.textContent = period;
     label.style.gridRow = index + 1;
     periodLabels.append(label);
@@ -581,8 +619,24 @@ function createPlaceholders() {
   });
 }
 
+function createBlockGuides() {
+  if (state.mode !== "block") return;
+
+  blockGuides.forEach((guide) => {
+    const blockGuide = document.createElement("div");
+    blockGuide.className = `block-guide block-guide--${guide.side}`;
+    blockGuide.style.gridRow = `${guide.row} / span ${guide.rows}`;
+    blockGuide.style.gridColumn = `${guide.col} / span ${guide.cols}`;
+    blockGuide.style.setProperty("--block-guide-color", blockColors[guide.key]);
+    blockGuide.setAttribute("aria-hidden", "true");
+    blockGuide.innerHTML = `<span class="block-guide-label">${guide.label}</span>`;
+    table.append(blockGuide);
+  });
+}
+
 function renderTable() {
   table.innerHTML = "";
+  createBlockGuides();
   createPlaceholders();
 
   elements.forEach((element) => {
@@ -598,7 +652,7 @@ function renderTable() {
     applyTextContrast(card, color);
     card.setAttribute(
       "aria-label",
-      `${element.name}，${element.symbol}，原子序数 ${element.z}，第 ${element.period} 周期，第 ${element.group} 族，${formatValue(element)}`,
+      `${element.name}，${element.symbol}，原子序数 ${element.z}，${formatPeriod(element)}，${formatGroup(element)}，${formatValue(element)}`,
     );
     card.innerHTML = `
       <span class="number">${element.z}</span>
@@ -656,12 +710,22 @@ function activeElement() {
 
 function updateDetail() {
   const element = activeElement();
+  const detailColor = colorForElement(element);
+  const detailCard = document.querySelector("#detailAtomicCard");
+  const detailCardIsDark = detailColor.startsWith("#") && luminance(detailColor) < 0.24;
+
+  detailCard.style.setProperty("--detail-card-bg", detailColor);
+  detailCard.style.setProperty("--detail-card-ink", detailCardIsDark ? "#f8fbff" : "#19202a");
+  detailCard.style.setProperty("--detail-card-muted", detailCardIsDark ? "rgba(248, 251, 255, 0.78)" : "rgba(25, 32, 42, 0.68)");
+
   document.querySelector("#detailNumber").textContent = element.z;
+  document.querySelector("#detailTileSymbol").textContent = element.symbol;
+  document.querySelector("#detailTileName").textContent = element.name;
   document.querySelector("#detailSymbol").textContent = element.symbol;
   document.querySelector("#detailName").textContent = element.name;
-  document.querySelector("#detailPeriod").textContent = `第 ${element.period} 周期`;
-  document.querySelector("#detailGroup").textContent = `第 ${element.group} 族`;
-  document.querySelector("#detailCategory").textContent = `${categoryNames[element.category]} · 第 ${element.period} 周期 · 第 ${element.group} 族`;
+  document.querySelector("#detailPeriod").textContent = formatPeriod(element);
+  document.querySelector("#detailGroup").textContent = formatGroup(element);
+  document.querySelector("#detailCategory").textContent = `${categoryNames[element.category]} · ${formatPeriod(element)} · ${formatGroup(element)}`;
   document.querySelector("#detailSummary").textContent = element.summary;
   document.querySelector("#detailEN").textContent = element.electronegativity === null ? "暂无常用值" : element.electronegativity.toFixed(2);
   document.querySelector("#detailIE").textContent = element.ionization === null ? "暂无常用值" : `${element.ionization} kJ/mol`;
