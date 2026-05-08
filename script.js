@@ -398,17 +398,21 @@ const visualRanges = {};
 
 const state = {
   mode: "category",
-  selected: elements[0],
+  selected: null,
+  hovered: null,
   query: "",
   groupFilter: "all",
 };
 
 const table = document.querySelector("#periodicTable");
+const periodicPanel = document.querySelector(".periodic-panel");
 const legend = document.querySelector("#legend");
 const modeTitle = document.querySelector("#modeTitle");
 const modeDescription = document.querySelector("#modeDescription");
 const searchInput = document.querySelector("#searchInput");
 const groupSelect = document.querySelector("#groupSelect");
+const canHoverPreview =
+  typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 function displayPosition(element) {
   if (element.category === "lanthanide") return { row: 8, col: element.z - 54 };
@@ -602,7 +606,12 @@ function renderTable() {
       <span class="name">${element.name}</span>
       <span class="value-badge">${badgeText(element)}</span>
     `;
-    card.addEventListener("click", () => selectElement(element));
+    card.addEventListener("pointerenter", () => previewElement(element));
+    card.addEventListener("focus", () => previewElement(element));
+    card.addEventListener("click", (event) => {
+      event.stopPropagation();
+      selectElement(element);
+    });
     table.append(card);
   });
 
@@ -622,12 +631,31 @@ function badgeText(element) {
 
 function selectElement(element) {
   state.selected = element;
+  state.hovered = element;
   updateDetail();
   applyFilters();
 }
 
+function previewElement(element) {
+  if (!canHoverPreview || state.selected) return;
+  state.hovered = element;
+  updateDetail();
+  applyFilters();
+}
+
+function cancelSelection() {
+  state.selected = null;
+  state.hovered = null;
+  updateDetail();
+  applyFilters();
+}
+
+function activeElement() {
+  return state.selected || state.hovered || elements[0];
+}
+
 function updateDetail() {
-  const element = state.selected;
+  const element = activeElement();
   document.querySelector("#detailNumber").textContent = element.z;
   document.querySelector("#detailSymbol").textContent = element.symbol;
   document.querySelector("#detailName").textContent = element.name;
@@ -651,10 +679,12 @@ function updateDetail() {
 }
 
 function applyFilters() {
+  const active = activeElement();
   document.querySelectorAll(".element").forEach((card) => {
     const element = elements.find((item) => item.z === Number(card.dataset.z));
     const { textMatch, groupMatch } = matchesFilter(element);
-    card.classList.toggle("selected", state.selected.z === element.z);
+    card.classList.toggle("selected", Boolean(state.selected && state.selected.z === element.z));
+    card.classList.toggle("previewed", !state.selected && active.z === element.z);
     card.classList.toggle("hidden-by-search", !textMatch);
     card.classList.toggle("dimmed", textMatch && !groupMatch);
   });
@@ -712,6 +742,12 @@ searchInput.addEventListener("input", (event) => {
 groupSelect.addEventListener("change", (event) => {
   state.groupFilter = event.target.value;
   applyFilters();
+});
+
+periodicPanel.addEventListener("click", (event) => {
+  if (!event.target.closest(".element")) {
+    cancelSelection();
+  }
 });
 
 const requestedMode =
