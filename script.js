@@ -188,6 +188,8 @@ const trendGuideMeta = {
     horizontal: "过渡金属常偏高",
     vertical: "C、Si 等有峰值",
     corner: "不按单一方向变化",
+    factors: ["化学键强弱", "晶体结构", "相对原子/分子质量", "分子间作用力"],
+    factorNote: "离子晶体、金属晶体、共价晶体和分子晶体不能只按位置硬背，要先看粒子间作用力和结构。",
   },
   boiling: {
     title: "沸点高值带",
@@ -195,6 +197,8 @@ const trendGuideMeta = {
     horizontal: "过渡金属常偏高",
     vertical: "结构影响很明显",
     corner: "看颜色深浅背记",
+    factors: ["粒子间作用力", "分子极性", "相对分子质量", "金属键 / 共价网络"],
+    factorNote: "沸点更直接反映粒子脱离彼此的难易，分子物质尤其要看范德华力、氢键和极性。",
   },
 };
 
@@ -470,7 +474,7 @@ const palettes = {
 };
 
 const visualRanges = {};
-const trendChartGeometry = { width: 520, height: 150, left: 36, right: 12, top: 18, bottom: 28 };
+const trendChartGeometry = { width: 560, height: 190, left: 32, right: 8, top: 14, bottom: 16 };
 
 const state = {
   mode: "category",
@@ -479,7 +483,9 @@ const state = {
   query: "",
   groupFilter: "all",
   showTrendGuides: true,
-  trendView: "map",
+  trendView: "chart",
+  ionExceptionPreview: false,
+  ionExceptionLocked: false,
 };
 
 const table = document.querySelector("#periodicTable");
@@ -715,9 +721,9 @@ function trendGuideSvg(direction) {
             <path d="M0 0 L9 4.5 L0 9 Z"></path>
           </marker>
         </defs>
-        <path class="trend-axis" d="M224 84 H82" marker-end="url(#trendArrowDownLeft)"></path>
-        <path class="trend-axis" d="M110 24 V102" marker-end="url(#trendArrowDownLeft)"></path>
-        <path class="trend-diagonal" d="M218 24 L58 102" marker-end="url(#trendArrowDownLeft)"></path>
+        <path class="trend-axis" d="M252 34 H226 H82" marker-end="url(#trendArrowDownLeft)"></path>
+        <path class="trend-axis" d="M226 20 V34 V100" marker-end="url(#trendArrowDownLeft)"></path>
+        <path class="trend-diagonal" d="M240 28 L226 34 L66 100" marker-end="url(#trendArrowDownLeft)"></path>
       </svg>
     `;
   }
@@ -753,6 +759,38 @@ function chartPoint(element, mode, range) {
   return { x, y, value };
 }
 
+function chartPoints(mode, range = chartRange(mode)) {
+  return elements
+    .map((element) => {
+      const point = chartPoint(element, mode, range);
+      return point ? { element, ...point } : null;
+    })
+    .filter(Boolean);
+}
+
+function nearestChartElement(mode, x) {
+  const points = chartPoints(mode);
+  return points.reduce((closest, point) => (Math.abs(point.x - x) < Math.abs(closest.x - x) ? point : closest), points[0]);
+}
+
+function chartXFromPointer(chart, event) {
+  const { width, left, right } = trendChartGeometry;
+  const matrix = chart.getScreenCTM?.();
+  const svgPoint = chart.createSVGPoint?.();
+  let x;
+
+  if (matrix && svgPoint) {
+    svgPoint.x = event.clientX;
+    svgPoint.y = event.clientY;
+    x = svgPoint.matrixTransform(matrix.inverse()).x;
+  } else {
+    const rect = chart.getBoundingClientRect();
+    x = ((event.clientX - rect.left) / rect.width) * width;
+  }
+
+  return Math.min(Math.max(x, left), width - right);
+}
+
 function formatChartTick(value, mode) {
   if (mode === "metallicity") return `${Math.round(value * 100)}%`;
   if (mode === "electronegativity") return value.toFixed(1);
@@ -775,6 +813,7 @@ function createTrendChart() {
   const plotRight = width - right;
   const plotBottom = height - bottom;
   const gridValues = [range[1], (range[0] + range[1]) / 2, range[0]];
+  const points = chartPoints(mode, range);
   const paths = [];
   let currentPath = "";
 
@@ -790,11 +829,10 @@ function createTrendChart() {
   if (currentPath) paths.push(currentPath);
 
   const pathMarkup = paths.map((path) => `<path class="trend-chart-line" d="${path}"></path>`).join("");
-  const pointMarkup = elements
-    .map((element) => {
-      const point = chartPoint(element, mode, range);
-      if (!point) return "";
-      return `<circle class="trend-chart-point" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="1.7"></circle>`;
+  const pointMarkup = points
+    .map(({ element, x, y, value }) => {
+      const label = `${element.symbol} ${element.name} ${formatPeriod(element)} ${formatGroup(element)} ${formatChartValue(value, mode)}`;
+      return `<circle class="trend-chart-point" data-z="${element.z}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.1"><title>${label}</title></circle>`;
     })
     .join("");
   const gridMarkup = gridValues
@@ -819,6 +857,7 @@ function createTrendChart() {
           <line class="trend-chart-marker-line" x1="0" x2="0" y1="${top}" y2="${plotBottom}"></line>
           <circle class="trend-chart-marker-dot" r="5.2"></circle>
         </g>
+        <rect class="trend-chart-hit-area" x="${left}" y="${top}" width="${plotRight - left}" height="${plotBottom - top}"></rect>
       </svg>
       <div class="trend-chart-note">
         <span class="trend-chart-active-symbol"></span>
@@ -829,21 +868,36 @@ function createTrendChart() {
 }
 
 function createTrendMap(guide) {
-  const exceptions = guide.exceptions
-    ? `<div class="trend-exceptions">${guide.exceptions.map((item) => `<span>${item}</span>`).join("")}</div>`
-    : "";
+  if (guide.direction === "thermal") {
+    return `
+      <div class="trend-map-view trend-factor-view">
+        <div class="trend-factor-grid">
+          ${guide.factors.map((factor) => `<span>${factor}</span>`).join("")}
+        </div>
+        <p class="trend-factor-note">${guide.factorNote}</p>
+      </div>
+    `;
+  }
+
+  const exceptionNote =
+    state.mode === "ionization"
+      ? `<span class="trend-guide-label trend-guide-label--exception">例外：IIA &gt; IIIA，VA &gt; VIA</span>`
+      : "";
+
   return `
     <div class="trend-map-view">
       ${trendGuideSvg(guide.direction)}
       <span class="trend-guide-label trend-guide-label--horizontal">${guide.horizontal}</span>
       <span class="trend-guide-label trend-guide-label--vertical">${guide.vertical}</span>
+      ${exceptionNote}
       <span class="trend-guide-corner">${guide.corner}</span>
-      ${exceptions}
     </div>
   `;
 }
 
-function createTrendViewToggle() {
+function createTrendViewToggle(guide) {
+  if (guide.direction === "thermal") return "";
+
   return `
     <div class="trend-view-toggle" role="group" aria-label="辅助图切换">
       <button class="trend-view-button ${state.trendView === "map" ? "active" : ""}" data-trend-view="map" type="button">方向</button>
@@ -856,15 +910,15 @@ function createTrendGuideCard(guide) {
   const card = document.createElement("div");
   card.className = `trend-guide-card trend-guide-card--${guide.direction}`;
   card.style.setProperty("--trend-color", trendColor());
-  card.style.gridRow = state.trendView === "chart" ? "1 / span 3" : "2 / span 2";
+  card.style.gridRow = "1 / span 3";
   card.style.gridColumn = "3 / span 10";
   card.setAttribute("aria-label", `${guide.title}辅助图`);
   card.innerHTML = `
     <div class="trend-guide-head">
       <div class="trend-guide-title">${guide.title}</div>
-      ${createTrendViewToggle()}
+      ${createTrendViewToggle(guide)}
     </div>
-    ${state.trendView === "chart" ? createTrendChart() : createTrendMap(guide)}
+    ${guide.direction === "thermal" || state.trendView === "chart" ? createTrendChart() : createTrendMap(guide)}
   `;
   card.querySelectorAll("[data-trend-view]").forEach((button) => {
     button.addEventListener("click", (event) => {
@@ -874,26 +928,11 @@ function createTrendGuideCard(guide) {
     });
   });
   table.append(card);
+  attachTrendChartHover(card);
   updateTrendMarker();
 }
 
 function createThermalGuides(guide) {
-  if (state.trendView === "map") {
-    [
-      { className: "trend-region--transition", row: 4, col: 4, rows: 3, cols: 8, label: "高值带" },
-      { className: "trend-region--network", row: 2, col: 14, rows: 2, cols: 1, label: "C / Si" },
-    ].forEach((region) => {
-      const item = document.createElement("div");
-      item.className = `trend-region ${region.className}`;
-      item.style.setProperty("--trend-color", trendColor());
-      item.style.gridRow = `${region.row} / span ${region.rows}`;
-      item.style.gridColumn = `${region.col} / span ${region.cols}`;
-      item.setAttribute("aria-hidden", "true");
-      item.innerHTML = `<span>${region.label}</span>`;
-      table.append(item);
-    });
-  }
-
   createTrendGuideCard(guide);
 }
 
@@ -908,11 +947,43 @@ function createTrendGuides() {
   createTrendGuideCard(guide);
 }
 
-function updateTrendMarker() {
+function attachTrendChartHover(scope) {
+  const chart = scope.querySelector(".trend-chart");
+  const hitArea = scope.querySelector(".trend-chart-hit-area");
+  const chartWrap = scope.querySelector(".trend-chart-wrap");
+  if (!chart || !chartWrap) return;
+
+  const chartElementFromPointer = (event) => {
+    const x = chartXFromPointer(chart, event);
+    const point = nearestChartElement(chartWrap.dataset.chartMode, x);
+    return point?.element || null;
+  };
+
+  const updateHover = (event) => {
+    const element = chartElementFromPointer(event);
+    if (!element) return;
+    if (state.selected) {
+      updateTrendMarker(element, true);
+      return;
+    }
+    previewTrendElement(element);
+  };
+
+  const updateSelection = (event) => {
+    event.stopPropagation();
+    const element = chartElementFromPointer(event);
+    if (element) selectElement(element);
+  };
+
+  (hitArea || chart).addEventListener("pointermove", updateHover);
+  (hitArea || chart).addEventListener("pointerleave", clearTrendPreview);
+  (hitArea || chart).addEventListener("click", updateSelection);
+}
+
+function updateTrendMarker(element = activeElement(), isHover = false) {
   const chartWrap = table.querySelector(".trend-chart-wrap");
   if (!chartWrap) return;
   const mode = chartWrap.dataset.chartMode;
-  const element = activeElement();
   const marker = chartWrap.querySelector(".trend-chart-marker");
   const markerLine = chartWrap.querySelector(".trend-chart-marker-line");
   const symbol = chartWrap.querySelector(".trend-chart-active-symbol");
@@ -922,6 +993,7 @@ function updateTrendMarker() {
   symbol.textContent = element.symbol;
   if (!point) {
     marker.classList.add("hidden");
+    chartWrap.classList.remove("is-hovering");
     valueLabel.textContent = `${modeMeta[mode].title.split("：")[0]}：暂无数据`;
     return;
   }
@@ -930,25 +1002,152 @@ function updateTrendMarker() {
   marker.setAttribute("transform", `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)})`);
   markerLine.setAttribute("y1", (trendChartGeometry.top - point.y).toFixed(1));
   markerLine.setAttribute("y2", (trendChartGeometry.height - trendChartGeometry.bottom - point.y).toFixed(1));
-  valueLabel.textContent = `${modeMeta[mode].title.split("：")[0]}：${formatChartValue(point.value, mode)}`;
+  chartWrap.classList.toggle("is-hovering", isHover);
+  valueLabel.textContent = `${formatChartValue(point.value, mode)} · ${formatPeriod(element)} · ${formatGroup(element)}`;
+}
+
+function ionizationExceptionPairs() {
+  return [
+    { leftGroup: 2, rightGroup: 13, className: "wide" },
+    { leftGroup: 15, rightGroup: 16, className: "short" },
+  ].flatMap((rule) =>
+    [2, 3, 4, 5, 6].flatMap((period) => {
+      const left = elements.find((element) => element.period === period && element.group === rule.leftGroup);
+      const right = elements.find((element) => element.period === period && element.group === rule.rightGroup);
+      if (!left || !right || left.ionization === null || right.ionization === null || left.ionization <= right.ionization) return [];
+      return [{ ...rule, period, left, right }];
+    }),
+  );
+}
+
+function canShowIonizationExceptions() {
+  return state.showTrendGuides && state.mode === "ionization";
+}
+
+function shouldFocusIonizationExceptions() {
+  return canShowIonizationExceptions() && (state.ionExceptionPreview || state.ionExceptionLocked);
+}
+
+function syncIonExceptionFocus() {
+  const isActive = shouldFocusIonizationExceptions();
+  table.classList.toggle("ion-exception-focus", isActive);
+  table.querySelector(".ion-exception-button")?.classList.toggle("active", isActive);
+}
+
+function createIonizationExceptionButton(pairs) {
+  if (!canShowIonizationExceptions() || !pairs.length) return;
+
+  const isActive = shouldFocusIonizationExceptions();
+  const button = document.createElement("button");
+  button.className = `ion-exception-button${isActive ? " active" : ""}`;
+  button.type = "button";
+  button.style.gridRow = 1;
+  button.style.gridColumn = "13 / span 5";
+  button.style.setProperty("--trend-color", trendColor());
+  button.setAttribute("aria-pressed", String(state.ionExceptionLocked));
+  button.innerHTML = `
+    <strong>例外记忆</strong>
+    <span>IIA &gt; IIIA，VA &gt; VIA</span>
+  `;
+  button.addEventListener("pointerenter", () => {
+    state.ionExceptionPreview = true;
+    syncIonExceptionFocus();
+    applyFilters();
+  });
+  button.addEventListener("pointerleave", () => {
+    state.ionExceptionPreview = false;
+    syncIonExceptionFocus();
+    applyFilters();
+  });
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    state.ionExceptionLocked = !state.ionExceptionLocked;
+    state.ionExceptionPreview = false;
+    syncIonExceptionFocus();
+    applyFilters();
+  });
+  table.append(button);
+}
+
+function createIonizationExceptionFocus(pairs) {
+  if (!pairs.length) return;
+
+  const directionCue = document.createElement("div");
+  directionCue.className = "ion-exception-direction-cue";
+  directionCue.style.gridRow = 1;
+  directionCue.style.gridColumn = "2 / span 15";
+  directionCue.style.setProperty("--trend-color", trendColor());
+  directionCue.setAttribute("aria-hidden", "true");
+  directionCue.innerHTML = `
+    <svg viewBox="0 0 1500 70" preserveAspectRatio="none" focusable="false">
+      <defs>
+        <marker id="ionExceptionArrowLeft" markerWidth="7" markerHeight="7" refX="1.6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0 0 L7 3.5 L0 7 Z"></path>
+        </marker>
+      </defs>
+      <path d="M1150 44 C900 30 440 30 50 44" marker-end="url(#ionExceptionArrowLeft)"></path>
+      <path d="M1450 54 C1420 48 1380 48 1350 54" marker-end="url(#ionExceptionArrowLeft)"></path>
+    </svg>
+  `;
+  table.append(directionCue);
+
+  pairs.forEach((pair) => {
+    const relation = document.createElement("div");
+    const start = Math.min(pair.left.group, pair.right.group);
+    const end = Math.max(pair.left.group, pair.right.group) + 1;
+    relation.className = `ion-exception-relation ion-exception-relation--${pair.className}`;
+    relation.style.gridRow = pair.period;
+    relation.style.gridColumn = `${start} / ${end}`;
+    relation.style.setProperty("--trend-color", trendColor());
+    relation.setAttribute("aria-hidden", "true");
+    relation.innerHTML = `
+      <span class="ion-exception-card ion-exception-card--higher">
+        <b>${pair.left.symbol}</b>
+        <small>${Math.round(pair.left.ionization)}</small>
+      </span>
+      <span class="ion-exception-arrow">&gt;</span>
+      <span class="ion-exception-card ion-exception-card--lower">
+        <b>${pair.right.symbol}</b>
+        <small>${Math.round(pair.right.ionization)}</small>
+      </span>
+    `;
+    table.append(relation);
+  });
 }
 
 function renderTable() {
   table.innerHTML = "";
+  const ionPairs = canShowIonizationExceptions() ? ionizationExceptionPairs() : [];
+  const shouldFocusIonPairs = shouldFocusIonizationExceptions();
+  const ionPairRoles = new Map(
+    canShowIonizationExceptions() ? ionPairs.flatMap((pair) => [
+      [pair.left.z, "higher"],
+      [pair.right.z, "lower"],
+    ]) : [],
+  );
+  table.classList.toggle("ion-exception-focus", shouldFocusIonPairs);
   createBlockGuides();
   createPlaceholders();
   createTrendGuides();
+  createIonizationExceptionButton(ionPairs);
+  createIonizationExceptionFocus(ionPairs);
 
   elements.forEach((element) => {
     const { row, col } = displayPosition(element);
     const card = document.createElement("button");
     card.className = "element";
+    const ionExceptionRole = ionPairRoles.get(element.z);
+    if (ionExceptionRole) {
+      card.classList.add("ion-exception-cell", `ion-exception-cell--${ionExceptionRole}`);
+      card.dataset.exceptionRole = ionExceptionRole === "higher" ? "较高" : "较低";
+    }
     card.type = "button";
     card.dataset.z = element.z;
     card.style.gridRow = row;
     card.style.gridColumn = col;
     const color = colorForElement(element);
     card.style.setProperty("--cell-bg", color);
+    if (ionExceptionRole) card.style.setProperty("--trend-color", trendColor());
     applyTextContrast(card, color);
     card.setAttribute(
       "aria-label",
@@ -998,15 +1197,35 @@ function previewElement(element) {
   applyFilters();
 }
 
+function previewTrendElement(element) {
+  state.hovered = element;
+  updateDetail();
+  applyFilters();
+  updateTrendMarker(element, true);
+}
+
+function clearTrendPreview() {
+  state.hovered = state.selected;
+  updateDetail();
+  applyFilters();
+  updateTrendMarker();
+}
+
+function clearIonExceptionFocus() {
+  state.ionExceptionPreview = false;
+  state.ionExceptionLocked = false;
+}
+
 function cancelSelection() {
   state.selected = null;
   state.hovered = null;
+  clearIonExceptionFocus();
   updateDetail();
   applyFilters();
 }
 
 function activeElement() {
-  return state.selected || state.hovered || elements[0];
+  return state.hovered || state.selected || elements[0];
 }
 
 function updateDetail() {
@@ -1046,18 +1265,21 @@ function updateDetail() {
 
 function applyFilters() {
   const active = activeElement();
+  const isIonExceptionFocus = shouldFocusIonizationExceptions();
   document.querySelectorAll(".element").forEach((card) => {
     const element = elements.find((item) => item.z === Number(card.dataset.z));
     const { textMatch, groupMatch } = matchesFilter(element);
+    const keepVisibleForIonFocus = isIonExceptionFocus && card.classList.contains("ion-exception-cell");
     card.classList.toggle("selected", Boolean(state.selected && state.selected.z === element.z));
-    card.classList.toggle("previewed", !state.selected && active.z === element.z);
-    card.classList.toggle("hidden-by-search", !textMatch);
-    card.classList.toggle("dimmed", textMatch && !groupMatch);
+    card.classList.toggle("previewed", Boolean(state.hovered && active.z === element.z && state.selected?.z !== element.z));
+    card.classList.toggle("hidden-by-search", !textMatch && !keepVisibleForIonFocus);
+    card.classList.toggle("dimmed", textMatch && !groupMatch && !keepVisibleForIonFocus);
   });
 }
 
 function updateMode(mode) {
   state.mode = mode;
+  clearIonExceptionFocus();
   document.querySelectorAll(".mode-button").forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === mode);
   });
@@ -1112,6 +1334,7 @@ groupSelect.addEventListener("change", (event) => {
 
 trendGuideToggle.addEventListener("change", (event) => {
   state.showTrendGuides = event.target.checked;
+  clearIonExceptionFocus();
   renderTable();
 });
 

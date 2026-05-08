@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>高中元素周期表可视化</title>
+    <title>高中可视化元素周期表</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151a24'/%3E%3Ccircle cx='22' cy='24' r='10' fill='%2349b6a8'/%3E%3Ccircle cx='42' cy='40' r='12' fill='%23f2b84b'/%3E%3Cpath d='M17 48h30' stroke='%23f7f3ea' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
   </head>
@@ -11,8 +11,8 @@
     <main class="app-shell">
       <section class="topbar" aria-labelledby="page-title">
         <div class="title-block">
-          <p class="eyebrow">高中化学 · 元素性质趋势</p>
-          <h1 id="page-title">可视化元素周期表</h1>
+          <p class="eyebrow">元素性质趋势 (高中)</p>
+          <h1 id="page-title">元素周期表</h1>
         </div>
 
         <div class="controls" aria-label="周期表控制">
@@ -35,7 +35,7 @@
           </label>
 
           <label class="trend-toggle">
-            <span>辅助线</span>
+            <span>助记图</span>
             <input id="trendGuideToggle" type="checkbox" checked />
             <span class="trend-switch" aria-hidden="true"></span>
           </label>
@@ -43,7 +43,7 @@
       </section>
 
       <section class="mode-strip" aria-label="显示模式">
-        <button class="mode-button active" data-mode="category" type="button">分类</button>
+        <button class="mode-button active" data-mode="category" type="button">类别</button>
         <button class="mode-button" data-mode="electronegativity" type="button">电负性</button>
         <button class="mode-button" data-mode="ionization" type="button">第一电离能</button>
         <button class="mode-button" data-mode="radius" type="button">原子半径</button>
