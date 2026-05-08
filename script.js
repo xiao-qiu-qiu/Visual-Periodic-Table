@@ -81,7 +81,7 @@ const groupLabelGuides = [
   { label: "0族", col: 18 },
 ];
 
-const periodNames = ["", "第一周期", "第二周期", "第三周期", "第四周期", "第五周期", "第六周期", "第七周期"];
+const periodNames = ["", "一", "二", "三", "四", "五", "六", "七"];
 
 const groupNames = {
   1: "IA",
@@ -794,7 +794,7 @@ function chartXFromPointer(chart, event) {
 function formatChartTick(value, mode) {
   if (mode === "metallicity") return `${Math.round(value * 100)}%`;
   if (mode === "electronegativity") return value.toFixed(1);
-  if (mode === "melting" || mode === "boiling") return `${Math.round(value)}°`;
+  if (mode === "melting" || mode === "boiling") return `${Math.round(value)}℃`;
   return `${Math.round(value)}`;
 }
 
