@@ -74,7 +74,7 @@ p {
 
 h1 {
   margin-bottom: 0;
-  font-size: clamp(2rem, 4.2vw, 4.2rem);
+  font-size: clamp(1.85rem, 3.5vw, 3.45rem);
   line-height: 1.05;
   letter-spacing: 0;
 }
@@ -157,25 +157,6 @@ h1 {
   overflow-x: auto;
   border-radius: 8px;
   padding: 36px 18px 18px 40px;
-}
-
-.axis-title {
-  position: absolute;
-  color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-.group-axis {
-  top: 10px;
-  left: 12px;
-}
-
-.period-axis {
-  top: 34px;
-  left: 8px;
-  writing-mode: vertical-rl;
 }
 
 .table-grid,
@@ -444,7 +425,7 @@ h1 {
 }
 
 .mini-chart span:nth-child(3) {
-  background: linear-gradient(180deg, #d86b45 0%, #8ecae6 100%);
+  background: linear-gradient(180deg, #2f9e8f 0%, #a8d8f0 100%);
 }
 
 .mini-chart ol {
