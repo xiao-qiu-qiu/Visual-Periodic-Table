@@ -749,6 +749,7 @@ function chartRange(mode) {
   const max = Math.max(...values);
   const padding = Math.max((max - min) * 0.08, mode === "metallicity" ? 0.05 : 1);
   if (mode === "melting" || mode === "boiling") return [absoluteZeroCelsius, max + padding];
+  if (mode === "electronegativity" || mode === "radius" || mode === "metallicity") return [0, max + padding];
   return [min - padding, max + padding];
 }
 
