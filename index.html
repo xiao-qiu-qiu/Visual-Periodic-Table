@@ -42,11 +42,16 @@
         <button class="mode-button" data-mode="ionization" type="button">第一电离能</button>
         <button class="mode-button" data-mode="radius" type="button">原子半径</button>
         <button class="mode-button" data-mode="metallicity" type="button">金属性</button>
+        <button class="mode-button" data-mode="block" type="button">分区</button>
+        <button class="mode-button" data-mode="melting" type="button">熔点</button>
+        <button class="mode-button" data-mode="boiling" type="button">沸点</button>
         <button class="mode-button" data-mode="phase" type="button">常温状态</button>
       </section>
 
       <section class="workspace">
         <div class="periodic-panel">
+          <span class="axis-title group-axis">族</span>
+          <span class="axis-title period-axis">周期</span>
           <div class="group-labels" id="groupLabels" aria-hidden="true"></div>
           <div class="period-labels" id="periodLabels" aria-hidden="true"></div>
           <div class="table-grid" id="periodicTable" aria-label="元素周期表"></div>
@@ -61,6 +66,10 @@
             </div>
           </div>
           <h3 id="detailName">氢</h3>
+          <div class="position-pills">
+            <span id="detailPeriod">第 1 周期</span>
+            <span id="detailGroup">第 1 族</span>
+          </div>
           <p id="detailSummary" class="summary">
             最轻的元素，位于第 1 周期、第 1 族。高中阶段常用来理解原子结构、共价键和酸碱反应。
           </p>
@@ -68,6 +77,8 @@
             <div><dt>电负性</dt><dd id="detailEN">2.20</dd></div>
             <div><dt>第一电离能</dt><dd id="detailIE">1312 kJ/mol</dd></div>
             <div><dt>原子半径</dt><dd id="detailRadius">53 pm</dd></div>
+            <div><dt>熔点</dt><dd id="detailMelting">-259.14 °C</dd></div>
+            <div><dt>沸点</dt><dd id="detailBoiling">-252.87 °C</dd></div>
             <div><dt>常温状态</dt><dd id="detailPhase">气体</dd></div>
           </dl>
           <div class="mini-chart" aria-hidden="true">

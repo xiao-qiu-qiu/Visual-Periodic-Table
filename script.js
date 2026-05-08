@@ -38,6 +38,43 @@ const phaseColors = {
   unknown: "#a5a8ad",
 };
 
+const blockNames = {
+  s: "s 区",
+  p: "p 区",
+  d: "d 区",
+  ds: "sd 区",
+  f: "f 区",
+};
+
+const blockColors = {
+  s: "#f2b84b",
+  p: "#55b7a7",
+  d: "#70a288",
+  ds: "#8ab6d6",
+  f: "#d79561",
+};
+
+const groupLabels = [
+  "IA",
+  "IIA",
+  "IIIB",
+  "IVB",
+  "VB",
+  "VIB",
+  "VIIB",
+  "VIIIB",
+  "VIIIB",
+  "VIIIB",
+  "IB",
+  "IIB",
+  "IIIA",
+  "IVA",
+  "VA",
+  "VIA",
+  "VIIA",
+  "VIIIA",
+];
+
 const modeMeta = {
   category: {
     title: "按元素类别着色",
@@ -63,6 +100,21 @@ const modeMeta = {
     title: "金属性：越亮越容易失电子",
     description: "金属性通常左下角最强、右上角最弱。它和还原性、最高价氧化物对应水化物的碱性等高中知识点联系很紧。",
     unit: "",
+  },
+  block: {
+    title: "电子分区：s、d、sd、p、f 区",
+    description: "按高中常见分区着色。s 区在左侧，p 区在右侧，d 区和 sd 区位于过渡金属区域，f 区单独展开在下方。",
+    unit: "",
+  },
+  melting: {
+    title: "熔点：越亮越难熔化",
+    description: "熔点反映固体变成液体所需温度。过渡金属和部分非金属通常较高，常温下为气体的元素熔点很低。",
+    unit: "°C",
+  },
+  boiling: {
+    title: "沸点：越亮越难气化",
+    description: "沸点反映液体变成气体所需温度。金属键、共价网络和分子间作用力都会影响它，因此趋势比电负性更复杂。",
+    unit: "°C",
   },
   phase: {
     title: "常温状态",
@@ -212,11 +264,125 @@ const elements = rows
     };
   });
 
+const thermalData = {
+  1: [-259.14, -252.87],
+  2: [null, -268.93],
+  3: [180.54, 1342],
+  4: [1287, 2470],
+  5: [2075, 4000],
+  6: [3550, 4027],
+  7: [-210.1, -195.79],
+  8: [-218.3, -182.9],
+  9: [-219.6, -188.12],
+  10: [-248.59, -246.08],
+  11: [97.72, 883],
+  12: [650, 1090],
+  13: [660.32, 2519],
+  14: [1414, 2900],
+  15: [44.2, 280.5],
+  16: [115.21, 444.72],
+  17: [-101.5, -34.04],
+  18: [-189.3, -185.8],
+  19: [63.38, 759],
+  20: [842, 1484],
+  21: [1541, 2830],
+  22: [1668, 3287],
+  23: [1910, 3407],
+  24: [1907, 2671],
+  25: [1246, 2061],
+  26: [1538, 2861],
+  27: [1495, 2927],
+  28: [1455, 2913],
+  29: [1084.62, 2562],
+  30: [419.53, 907],
+  31: [29.76, 2204],
+  32: [938.3, 2820],
+  33: [817, 614],
+  34: [221, 685],
+  35: [-7.3, 59],
+  36: [-157.36, -153.22],
+  37: [39.31, 688],
+  38: [777, 1382],
+  39: [1526, 3345],
+  40: [1855, 4409],
+  41: [2477, 4744],
+  42: [2623, 4639],
+  43: [2157, 4265],
+  44: [2334, 4150],
+  45: [1964, 3695],
+  46: [1554.9, 2963],
+  47: [961.78, 2162],
+  48: [321.07, 767],
+  49: [156.6, 2072],
+  50: [231.93, 2602],
+  51: [630.63, 1587],
+  52: [449.51, 988],
+  53: [113.7, 184.3],
+  54: [-111.8, -108],
+  55: [28.44, 671],
+  56: [727, 1870],
+  57: [919, 3464],
+  58: [798, 3360],
+  59: [931, 3290],
+  60: [1021, 3100],
+  61: [1100, 3000],
+  62: [1072, 1803],
+  63: [822, 1527],
+  64: [1313, 3250],
+  65: [1356, 3230],
+  66: [1412, 2567],
+  67: [1474, 2700],
+  68: [1497, 2868],
+  69: [1545, 1950],
+  70: [819, 1196],
+  71: [1663, 3402],
+  72: [2233, 4603],
+  73: [3017, 5458],
+  74: [3422, 5555],
+  75: [3186, 5596],
+  76: [3033, 5012],
+  77: [2466, 4428],
+  78: [1768.3, 3825],
+  79: [1064.18, 2856],
+  80: [-38.83, 356.73],
+  81: [304, 1473],
+  82: [327.46, 1749],
+  83: [271.3, 1564],
+  84: [254, 962],
+  85: [302, null],
+  86: [-71, -61.7],
+  87: [null, null],
+  88: [700, 1737],
+  89: [1050, 3200],
+  90: [1750, 4820],
+  91: [1572, 4000],
+  92: [1135, 3927],
+  93: [644, 4000],
+  94: [640, 3230],
+  95: [1176, 2011],
+  96: [1345, 3110],
+  97: [1050, null],
+  98: [900, null],
+  99: [860, null],
+  100: [1527, null],
+  101: [828, null],
+  102: [828, null],
+  103: [1627, null],
+};
+
+elements.forEach((element) => {
+  const [melting = null, boiling = null] = thermalData[element.z] || [];
+  element.melting = melting;
+  element.boiling = boiling;
+});
+
 const ranges = {
   electronegativity: [0.7, 3.98],
   ionization: [376, 2372],
   radius: [31, 348],
   metallicity: [0, 1],
+  melting: [-260, 3422],
+  boiling: [-269, 5596],
 };
 
 const palettes = {
@@ -224,6 +390,8 @@ const palettes = {
   ionization: ["#eef2ff", "#a8c2ff", "#5f86df", "#6a52ad", "#301f67"],
   radius: ["#eaf4ff", "#9fc9ed", "#5da4ac", "#e3b64b", "#d86b45"],
   metallicity: ["#edf4f2", "#9fcfbd", "#56a178", "#dcaa3a", "#dc6a33"],
+  melting: ["#e9f6ff", "#8ecae6", "#43a9a3", "#f0b84d", "#d84f3f"],
+  boiling: ["#eef3ff", "#8eb9f1", "#547fd0", "#8e4fa8", "#4a1f63"],
 };
 
 const visualRanges = {};
@@ -266,8 +434,16 @@ function metallicity(element) {
   return Math.max(0, Math.min(1, categoryBoost * 0.62 + periodScore * 0.23 + groupScore * 0.15));
 }
 
+function elementBlock(element) {
+  if (element.category === "lanthanide" || element.category === "actinide") return "f";
+  if (element.symbol === "He" || element.group <= 2) return "s";
+  if (element.group >= 13) return "p";
+  if (element.group >= 11 && element.group <= 12) return "ds";
+  return "d";
+}
+
 function buildVisualRanges() {
-  ["electronegativity", "ionization", "radius"].forEach((mode) => {
+  ["electronegativity", "ionization", "radius", "melting", "boiling"].forEach((mode) => {
     const values = elements
       .map((element) => element[mode])
       .filter((value) => value !== null)
@@ -319,6 +495,8 @@ function valueForMode(element) {
   if (state.mode === "electronegativity") return element.electronegativity;
   if (state.mode === "ionization") return element.ionization;
   if (state.mode === "radius") return element.radius;
+  if (state.mode === "melting") return element.melting;
+  if (state.mode === "boiling") return element.boiling;
   if (state.mode === "metallicity") return metallicity(element);
   return null;
 }
@@ -328,14 +506,22 @@ function formatValue(element) {
   const value = valueForMode(element);
   if (state.mode === "category") return categoryNames[element.category];
   if (state.mode === "phase") return phaseNames[element.phase];
+  if (state.mode === "block") return blockNames[elementBlock(element)];
   if (value === null) return "暂无";
   if (state.mode === "metallicity") return `${Math.round(value * 100)}%`;
   return `${value}${unit ? ` ${unit}` : ""}`;
 }
 
+function formatTemperature(value) {
+  if (value === null || Number.isNaN(value)) return "暂无常用值";
+  const rounded = Math.abs(value) >= 100 ? Math.round(value) : Number(value.toFixed(2));
+  return `${rounded} °C`;
+}
+
 function colorForElement(element) {
   if (state.mode === "category") return categoryColors[element.category];
   if (state.mode === "phase") return phaseColors[element.phase];
+  if (state.mode === "block") return blockColors[elementBlock(element)];
   const value = valueForMode(element);
   return heatColor(value, state.mode);
 }
@@ -357,15 +543,15 @@ function matchesFilter(element) {
 }
 
 function createLabels() {
-  const groupLabels = document.querySelector("#groupLabels");
+  const groupLabelContainer = document.querySelector("#groupLabels");
   const periodLabels = document.querySelector("#periodLabels");
 
   for (let group = 1; group <= 18; group += 1) {
     const label = document.createElement("div");
     label.className = "group-label";
-    label.textContent = group;
+    label.textContent = groupLabels[group - 1];
     label.style.gridColumn = group;
-    groupLabels.append(label);
+    groupLabelContainer.append(label);
   }
 
   ["1", "2", "3", "4", "5", "6", "7", "镧", "锕"].forEach((period, index) => {
@@ -406,7 +592,10 @@ function renderTable() {
     const color = colorForElement(element);
     card.style.setProperty("--cell-bg", color);
     applyTextContrast(card, color);
-    card.setAttribute("aria-label", `${element.name}，${element.symbol}，原子序数 ${element.z}，${formatValue(element)}`);
+    card.setAttribute(
+      "aria-label",
+      `${element.name}，${element.symbol}，原子序数 ${element.z}，第 ${element.period} 周期，第 ${element.group} 族，${formatValue(element)}`,
+    );
     card.innerHTML = `
       <span class="number">${element.z}</span>
       <span class="symbol">${element.symbol}</span>
@@ -423,9 +612,11 @@ function renderTable() {
 function badgeText(element) {
   if (state.mode === "category") return categoryNames[element.category].slice(0, 2);
   if (state.mode === "phase") return phaseNames[element.phase];
+  if (state.mode === "block") return blockNames[elementBlock(element)].replace(" 区", "");
   const value = valueForMode(element);
   if (value === null) return "—";
   if (state.mode === "metallicity") return Math.round(value * 100);
+  if (state.mode === "melting" || state.mode === "boiling") return Math.round(value);
   return value;
 }
 
@@ -440,11 +631,15 @@ function updateDetail() {
   document.querySelector("#detailNumber").textContent = element.z;
   document.querySelector("#detailSymbol").textContent = element.symbol;
   document.querySelector("#detailName").textContent = element.name;
+  document.querySelector("#detailPeriod").textContent = `第 ${element.period} 周期`;
+  document.querySelector("#detailGroup").textContent = `第 ${element.group} 族`;
   document.querySelector("#detailCategory").textContent = `${categoryNames[element.category]} · 第 ${element.period} 周期 · 第 ${element.group} 族`;
   document.querySelector("#detailSummary").textContent = element.summary;
   document.querySelector("#detailEN").textContent = element.electronegativity === null ? "暂无常用值" : element.electronegativity.toFixed(2);
   document.querySelector("#detailIE").textContent = element.ionization === null ? "暂无常用值" : `${element.ionization} kJ/mol`;
   document.querySelector("#detailRadius").textContent = element.radius === null ? "暂无常用值" : `${element.radius} pm`;
+  document.querySelector("#detailMelting").textContent = formatTemperature(element.melting);
+  document.querySelector("#detailBoiling").textContent = formatTemperature(element.boiling);
   document.querySelector("#detailPhase").textContent = phaseNames[element.phase];
 
   const enHeight = element.electronegativity ? ((element.electronegativity - 0.7) / (3.98 - 0.7)) * 82 + 8 : 8;
@@ -484,6 +679,10 @@ function renderLegend() {
   }
   if (state.mode === "phase") {
     Object.entries(phaseColors).forEach(([key, color]) => addLegendItem(color, phaseNames[key]));
+    return;
+  }
+  if (state.mode === "block") {
+    Object.entries(blockColors).forEach(([key, color]) => addLegendItem(color, blockNames[key]));
     return;
   }
   const items = state.mode === "radius" ? ["小", "中", "大"] : ["低", "中", "高"];
