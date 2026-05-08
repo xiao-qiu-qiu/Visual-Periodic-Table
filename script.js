@@ -475,6 +475,7 @@ const palettes = {
 
 const visualRanges = {};
 const trendChartGeometry = { width: 560, height: 190, left: 32, right: 8, top: 14, bottom: 16 };
+const absoluteZeroCelsius = -273.15;
 
 const state = {
   mode: "category",
@@ -747,6 +748,7 @@ function chartRange(mode) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const padding = Math.max((max - min) * 0.08, mode === "metallicity" ? 0.05 : 1);
+  if (mode === "melting" || mode === "boiling") return [absoluteZeroCelsius, max + padding];
   return [min - padding, max + padding];
 }
 
