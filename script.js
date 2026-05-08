@@ -152,6 +152,52 @@ const modeMeta = {
   },
 };
 
+const trendGuideMeta = {
+  electronegativity: {
+    title: "电负性增强",
+    direction: "up-right",
+    horizontal: "同周期：左到右增强",
+    vertical: "同主族：下到上增强",
+    corner: "右上更强",
+  },
+  ionization: {
+    title: "第一电离能增大",
+    direction: "up-right",
+    horizontal: "同周期：左到右增大",
+    vertical: "同主族：下到上增大",
+    corner: "右上更大",
+    exceptions: ["IIA > IIIA", "VA > VIA"],
+  },
+  radius: {
+    title: "原子半径增大",
+    direction: "down-left",
+    horizontal: "同周期：右到左增大",
+    vertical: "同主族：上到下增大",
+    corner: "左下更大",
+  },
+  metallicity: {
+    title: "金属性增强",
+    direction: "down-left",
+    horizontal: "同周期：右到左增强",
+    vertical: "同主族：上到下增强",
+    corner: "左下更强",
+  },
+  melting: {
+    title: "熔点高值带",
+    direction: "thermal",
+    horizontal: "过渡金属常偏高",
+    vertical: "C、Si 等有峰值",
+    corner: "不按单一方向变化",
+  },
+  boiling: {
+    title: "沸点高值带",
+    direction: "thermal",
+    horizontal: "过渡金属常偏高",
+    vertical: "结构影响很明显",
+    corner: "看颜色深浅背记",
+  },
+};
+
 const rows = `
 1|H|氢|1|1|nonmetal|gas|2.20|1312|53|最轻的元素，常用于理解原子结构、共价键和酸碱反应。
 2|He|氦|1|18|noble|gas||2372|31|稀有气体，最外层电子稳定，化学性质很不活泼。
@@ -424,6 +470,7 @@ const palettes = {
 };
 
 const visualRanges = {};
+const trendChartGeometry = { width: 520, height: 150, left: 36, right: 12, top: 18, bottom: 28 };
 
 const state = {
   mode: "category",
@@ -431,6 +478,8 @@ const state = {
   hovered: null,
   query: "",
   groupFilter: "all",
+  showTrendGuides: true,
+  trendView: "map",
 };
 
 const table = document.querySelector("#periodicTable");
@@ -440,6 +489,7 @@ const modeTitle = document.querySelector("#modeTitle");
 const modeDescription = document.querySelector("#modeDescription");
 const searchInput = document.querySelector("#searchInput");
 const groupSelect = document.querySelector("#groupSelect");
+const trendGuideToggle = document.querySelector("#trendGuideToggle");
 const canHoverPreview =
   typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
@@ -524,14 +574,18 @@ function heatColor(value, mode) {
   return mixHex(palette[index], palette[index + 1], scaled - index);
 }
 
-function valueForMode(element) {
-  if (state.mode === "electronegativity") return element.electronegativity;
-  if (state.mode === "ionization") return element.ionization;
-  if (state.mode === "radius") return element.radius;
-  if (state.mode === "melting") return element.melting;
-  if (state.mode === "boiling") return element.boiling;
-  if (state.mode === "metallicity") return metallicity(element);
+function propertyValue(element, mode) {
+  if (mode === "electronegativity") return element.electronegativity;
+  if (mode === "ionization") return element.ionization;
+  if (mode === "radius") return element.radius;
+  if (mode === "melting") return element.melting;
+  if (mode === "boiling") return element.boiling;
+  if (mode === "metallicity") return metallicity(element);
   return null;
+}
+
+function valueForMode(element) {
+  return propertyValue(element, state.mode);
 }
 
 function formatValue(element) {
@@ -634,10 +688,256 @@ function createBlockGuides() {
   });
 }
 
+function trendColor() {
+  if (state.mode === "electronegativity" || state.mode === "ionization") return heatColor(ranges[state.mode][1], state.mode);
+  if (state.mode === "radius" || state.mode === "metallicity") return heatColor(ranges[state.mode][1], state.mode);
+  if (state.mode === "melting" || state.mode === "boiling") return heatColor(ranges[state.mode][1], state.mode);
+  return "#147c72";
+}
+
+function trendGuideSvg(direction) {
+  if (direction === "thermal") {
+    return `
+      <svg class="trend-guide-lines trend-guide-lines--thermal" viewBox="0 0 280 118" aria-hidden="true" focusable="false">
+        <path class="trend-band" d="M38 84 C80 36 126 94 166 46 S232 38 248 72"></path>
+        <circle class="trend-point" cx="76" cy="50" r="7"></circle>
+        <circle class="trend-point" cx="170" cy="46" r="7"></circle>
+        <circle class="trend-point" cx="222" cy="58" r="7"></circle>
+      </svg>
+    `;
+  }
+
+  if (direction === "down-left") {
+    return `
+      <svg class="trend-guide-lines" viewBox="0 0 280 118" aria-hidden="true" focusable="false">
+        <defs>
+          <marker id="trendArrowDownLeft" markerWidth="9" markerHeight="9" refX="5" refY="4.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M0 0 L9 4.5 L0 9 Z"></path>
+          </marker>
+        </defs>
+        <path class="trend-axis" d="M224 84 H82" marker-end="url(#trendArrowDownLeft)"></path>
+        <path class="trend-axis" d="M110 24 V102" marker-end="url(#trendArrowDownLeft)"></path>
+        <path class="trend-diagonal" d="M218 24 L58 102" marker-end="url(#trendArrowDownLeft)"></path>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg class="trend-guide-lines" viewBox="0 0 280 118" aria-hidden="true" focusable="false">
+      <defs>
+        <marker id="trendArrowUpRight" markerWidth="9" markerHeight="9" refX="5" refY="4.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0 0 L9 4.5 L0 9 Z"></path>
+        </marker>
+      </defs>
+      <path class="trend-axis" d="M56 88 H224" marker-end="url(#trendArrowUpRight)"></path>
+      <path class="trend-axis" d="M76 98 V28" marker-end="url(#trendArrowUpRight)"></path>
+      <path class="trend-diagonal" d="M56 96 L218 24" marker-end="url(#trendArrowUpRight)"></path>
+    </svg>
+  `;
+}
+
+function chartRange(mode) {
+  const values = elements.map((element) => propertyValue(element, mode)).filter((value) => value !== null);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const padding = Math.max((max - min) * 0.08, mode === "metallicity" ? 0.05 : 1);
+  return [min - padding, max + padding];
+}
+
+function chartPoint(element, mode, range) {
+  const value = propertyValue(element, mode);
+  if (value === null) return null;
+  const { width, height, left, right, top, bottom } = trendChartGeometry;
+  const x = left + ((element.z - 1) / 117) * (width - left - right);
+  const y = top + (1 - (value - range[0]) / (range[1] - range[0])) * (height - top - bottom);
+  return { x, y, value };
+}
+
+function formatChartTick(value, mode) {
+  if (mode === "metallicity") return `${Math.round(value * 100)}%`;
+  if (mode === "electronegativity") return value.toFixed(1);
+  if (mode === "melting" || mode === "boiling") return `${Math.round(value)}°`;
+  return `${Math.round(value)}`;
+}
+
+function formatChartValue(value, mode) {
+  if (value === null) return "暂无数据";
+  if (mode === "metallicity") return `${Math.round(value * 100)}%`;
+  if (mode === "electronegativity") return value.toFixed(2);
+  if (mode === "melting" || mode === "boiling") return formatTemperature(value);
+  return `${Math.round(value)} ${modeMeta[mode].unit}`;
+}
+
+function createTrendChart() {
+  const mode = state.mode;
+  const range = chartRange(mode);
+  const { width, height, left, right, top, bottom } = trendChartGeometry;
+  const plotRight = width - right;
+  const plotBottom = height - bottom;
+  const gridValues = [range[1], (range[0] + range[1]) / 2, range[0]];
+  const paths = [];
+  let currentPath = "";
+
+  elements.forEach((element) => {
+    const point = chartPoint(element, mode, range);
+    if (!point) {
+      if (currentPath) paths.push(currentPath);
+      currentPath = "";
+      return;
+    }
+    currentPath += `${currentPath ? " L" : "M"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+  });
+  if (currentPath) paths.push(currentPath);
+
+  const pathMarkup = paths.map((path) => `<path class="trend-chart-line" d="${path}"></path>`).join("");
+  const pointMarkup = elements
+    .map((element) => {
+      const point = chartPoint(element, mode, range);
+      if (!point) return "";
+      return `<circle class="trend-chart-point" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="1.7"></circle>`;
+    })
+    .join("");
+  const gridMarkup = gridValues
+    .map((value) => {
+      const y = top + (1 - (value - range[0]) / (range[1] - range[0])) * (height - top - bottom);
+      return `
+        <line class="trend-chart-gridline" x1="${left}" x2="${plotRight}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"></line>
+        <text class="trend-chart-tick" x="${left - 7}" y="${(y + 3).toFixed(1)}">${formatChartTick(value, mode)}</text>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="trend-chart-wrap" data-chart-mode="${mode}">
+      <svg class="trend-chart" viewBox="0 0 ${width} ${height}" aria-hidden="true" focusable="false">
+        ${gridMarkup}
+        <line class="trend-chart-axis" x1="${left}" x2="${plotRight}" y1="${plotBottom}" y2="${plotBottom}"></line>
+        <line class="trend-chart-axis" x1="${left}" x2="${left}" y1="${top}" y2="${plotBottom}"></line>
+        ${pathMarkup}
+        ${pointMarkup}
+        <g class="trend-chart-marker">
+          <line class="trend-chart-marker-line" x1="0" x2="0" y1="${top}" y2="${plotBottom}"></line>
+          <circle class="trend-chart-marker-dot" r="5.2"></circle>
+        </g>
+      </svg>
+      <div class="trend-chart-note">
+        <span class="trend-chart-active-symbol"></span>
+        <span class="trend-chart-active-value"></span>
+      </div>
+    </div>
+  `;
+}
+
+function createTrendMap(guide) {
+  const exceptions = guide.exceptions
+    ? `<div class="trend-exceptions">${guide.exceptions.map((item) => `<span>${item}</span>`).join("")}</div>`
+    : "";
+  return `
+    <div class="trend-map-view">
+      ${trendGuideSvg(guide.direction)}
+      <span class="trend-guide-label trend-guide-label--horizontal">${guide.horizontal}</span>
+      <span class="trend-guide-label trend-guide-label--vertical">${guide.vertical}</span>
+      <span class="trend-guide-corner">${guide.corner}</span>
+      ${exceptions}
+    </div>
+  `;
+}
+
+function createTrendViewToggle() {
+  return `
+    <div class="trend-view-toggle" role="group" aria-label="辅助图切换">
+      <button class="trend-view-button ${state.trendView === "map" ? "active" : ""}" data-trend-view="map" type="button">方向</button>
+      <button class="trend-view-button ${state.trendView === "chart" ? "active" : ""}" data-trend-view="chart" type="button">曲线</button>
+    </div>
+  `;
+}
+
+function createTrendGuideCard(guide) {
+  const card = document.createElement("div");
+  card.className = `trend-guide-card trend-guide-card--${guide.direction}`;
+  card.style.setProperty("--trend-color", trendColor());
+  card.style.gridRow = state.trendView === "chart" ? "1 / span 3" : "2 / span 2";
+  card.style.gridColumn = "3 / span 10";
+  card.setAttribute("aria-label", `${guide.title}辅助图`);
+  card.innerHTML = `
+    <div class="trend-guide-head">
+      <div class="trend-guide-title">${guide.title}</div>
+      ${createTrendViewToggle()}
+    </div>
+    ${state.trendView === "chart" ? createTrendChart() : createTrendMap(guide)}
+  `;
+  card.querySelectorAll("[data-trend-view]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.trendView = button.dataset.trendView;
+      renderTable();
+    });
+  });
+  table.append(card);
+  updateTrendMarker();
+}
+
+function createThermalGuides(guide) {
+  if (state.trendView === "map") {
+    [
+      { className: "trend-region--transition", row: 4, col: 4, rows: 3, cols: 8, label: "高值带" },
+      { className: "trend-region--network", row: 2, col: 14, rows: 2, cols: 1, label: "C / Si" },
+    ].forEach((region) => {
+      const item = document.createElement("div");
+      item.className = `trend-region ${region.className}`;
+      item.style.setProperty("--trend-color", trendColor());
+      item.style.gridRow = `${region.row} / span ${region.rows}`;
+      item.style.gridColumn = `${region.col} / span ${region.cols}`;
+      item.setAttribute("aria-hidden", "true");
+      item.innerHTML = `<span>${region.label}</span>`;
+      table.append(item);
+    });
+  }
+
+  createTrendGuideCard(guide);
+}
+
+function createTrendGuides() {
+  if (!state.showTrendGuides) return;
+  const guide = trendGuideMeta[state.mode];
+  if (!guide) return;
+  if (guide.direction === "thermal") {
+    createThermalGuides(guide);
+    return;
+  }
+  createTrendGuideCard(guide);
+}
+
+function updateTrendMarker() {
+  const chartWrap = table.querySelector(".trend-chart-wrap");
+  if (!chartWrap) return;
+  const mode = chartWrap.dataset.chartMode;
+  const element = activeElement();
+  const marker = chartWrap.querySelector(".trend-chart-marker");
+  const markerLine = chartWrap.querySelector(".trend-chart-marker-line");
+  const symbol = chartWrap.querySelector(".trend-chart-active-symbol");
+  const valueLabel = chartWrap.querySelector(".trend-chart-active-value");
+  const point = chartPoint(element, mode, chartRange(mode));
+
+  symbol.textContent = element.symbol;
+  if (!point) {
+    marker.classList.add("hidden");
+    valueLabel.textContent = `${modeMeta[mode].title.split("：")[0]}：暂无数据`;
+    return;
+  }
+
+  marker.classList.remove("hidden");
+  marker.setAttribute("transform", `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)})`);
+  markerLine.setAttribute("y1", (trendChartGeometry.top - point.y).toFixed(1));
+  markerLine.setAttribute("y2", (trendChartGeometry.height - trendChartGeometry.bottom - point.y).toFixed(1));
+  valueLabel.textContent = `${modeMeta[mode].title.split("：")[0]}：${formatChartValue(point.value, mode)}`;
+}
+
 function renderTable() {
   table.innerHTML = "";
   createBlockGuides();
   createPlaceholders();
+  createTrendGuides();
 
   elements.forEach((element) => {
     const { row, col } = displayPosition(element);
@@ -670,6 +970,7 @@ function renderTable() {
   });
 
   applyFilters();
+  updateTrendMarker();
 }
 
 function badgeText(element) {
@@ -740,6 +1041,7 @@ function updateDetail() {
   document.querySelector("#barEN").style.height = `${enHeight}px`;
   document.querySelector("#barIE").style.height = `${ieHeight}px`;
   document.querySelector("#barRadius").style.height = `${radiusHeight}px`;
+  updateTrendMarker();
 }
 
 function applyFilters() {
@@ -806,6 +1108,11 @@ searchInput.addEventListener("input", (event) => {
 groupSelect.addEventListener("change", (event) => {
   state.groupFilter = event.target.value;
   applyFilters();
+});
+
+trendGuideToggle.addEventListener("change", (event) => {
+  state.showTrendGuides = event.target.checked;
+  renderTable();
 });
 
 periodicPanel.addEventListener("click", (event) => {

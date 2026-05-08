@@ -109,10 +109,68 @@ h1 {
 
 .search-box input:focus,
 .select-box select:focus,
+.trend-toggle input:focus-visible + .trend-switch,
 .mode-button:focus-visible,
 .element:focus-visible {
   outline: 3px solid rgba(20, 124, 114, 0.26);
   outline-offset: 2px;
+}
+
+.trend-toggle {
+  position: relative;
+  align-self: end;
+  display: grid;
+  grid-template-columns: auto 52px;
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  user-select: none;
+}
+
+.trend-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trend-switch {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border: 1px solid rgba(25, 32, 42, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 3px rgba(25, 32, 42, 0.08);
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.trend-switch::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fffdf8;
+  box-shadow: 0 4px 10px rgba(25, 32, 42, 0.2);
+  transition: transform 180ms ease;
+}
+
+.trend-toggle input:checked + .trend-switch {
+  border-color: var(--active);
+  background: var(--active);
+}
+
+.trend-toggle input:checked + .trend-switch::after {
+  transform: translateX(22px);
 }
 
 .mode-strip {
@@ -150,10 +208,12 @@ h1 {
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 16px;
   align-items: stretch;
+  min-width: 0;
 }
 
 .periodic-panel {
   position: relative;
+  min-width: 0;
   overflow-x: auto;
   border-radius: 8px;
   padding: 36px 18px 18px 48px;
@@ -398,6 +458,294 @@ h1 {
   top: 0;
   left: 50%;
   transform: translate(-50%, calc(-100% - 6px));
+}
+
+.trend-region {
+  pointer-events: none;
+}
+
+.trend-guide-card {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--trend-color) 38%, rgba(25, 32, 42, 0.14));
+  border-radius: 8px;
+  padding: 8px 10px 10px;
+  color: var(--ink);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--trend-color) 13%, transparent), rgba(255, 252, 246, 0.8)),
+    rgba(255, 252, 246, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 10px 28px rgba(25, 32, 42, 0.08);
+  pointer-events: auto;
+}
+
+.trend-guide-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.trend-guide-title {
+  color: color-mix(in srgb, var(--trend-color) 74%, #19202a);
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.trend-view-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--trend-color) 28%, rgba(25, 32, 42, 0.12));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.trend-view-button {
+  min-width: 40px;
+  min-height: 24px;
+  border: 0;
+  padding: 0 8px;
+  color: rgba(25, 32, 42, 0.68);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.trend-view-button.active {
+  color: #fffdf8;
+  background: color-mix(in srgb, var(--trend-color) 72%, #19323c);
+}
+
+.trend-map-view {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+}
+
+.trend-guide-lines {
+  position: absolute;
+  inset: 4px 22px 2px;
+  width: calc(100% - 44px);
+  height: calc(100% - 6px);
+  overflow: visible;
+}
+
+.trend-guide-lines marker path {
+  fill: var(--trend-color);
+}
+
+.trend-axis,
+.trend-diagonal,
+.trend-band {
+  fill: none;
+  stroke: var(--trend-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trend-axis {
+  stroke-width: 5;
+  opacity: 0.58;
+}
+
+.trend-diagonal {
+  stroke-width: 7;
+  opacity: 0.78;
+}
+
+.trend-band {
+  stroke-width: 8;
+  opacity: 0.72;
+}
+
+.trend-point {
+  fill: color-mix(in srgb, var(--trend-color) 80%, #fffdf8);
+  stroke: rgba(255, 252, 246, 0.92);
+  stroke-width: 4;
+}
+
+.trend-guide-label,
+.trend-guide-corner {
+  position: absolute;
+  z-index: 2;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: rgba(25, 32, 42, 0.76);
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.trend-guide-label--horizontal {
+  bottom: 8px;
+  left: 4px;
+}
+
+.trend-guide-label--vertical {
+  top: 28px;
+  left: 4px;
+}
+
+.trend-guide-corner {
+  top: 4px;
+  right: 4px;
+  color: color-mix(in srgb, var(--trend-color) 76%, #19202a);
+}
+
+.trend-exceptions {
+  position: absolute;
+  z-index: 2;
+  right: 92px;
+  bottom: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.trend-exceptions span {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: color-mix(in srgb, var(--trend-color) 74%, #19202a);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 5px 12px rgba(25, 32, 42, 0.08);
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.trend-chart-wrap {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.trend-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+}
+
+.trend-chart-gridline {
+  stroke: rgba(25, 32, 42, 0.12);
+  stroke-width: 1;
+}
+
+.trend-chart-axis {
+  stroke: rgba(25, 32, 42, 0.36);
+  stroke-width: 1.2;
+}
+
+.trend-chart-line {
+  fill: none;
+  stroke: var(--trend-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.trend-chart-point {
+  fill: var(--trend-color);
+  opacity: 0.62;
+}
+
+.trend-chart-tick {
+  fill: rgba(25, 32, 42, 0.58);
+  font-size: 10px;
+  font-weight: 800;
+  text-anchor: end;
+}
+
+.trend-chart-marker-line {
+  stroke: color-mix(in srgb, var(--trend-color) 78%, #19202a);
+  stroke-dasharray: 3 3;
+  stroke-width: 1.4;
+}
+
+.trend-chart-marker-dot {
+  fill: #fffdf8;
+  stroke: color-mix(in srgb, var(--trend-color) 78%, #19202a);
+  stroke-width: 3;
+}
+
+.trend-chart-marker.hidden {
+  display: none;
+}
+
+.trend-chart-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: rgba(25, 32, 42, 0.72);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.trend-chart-active-symbol {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  min-height: 20px;
+  border-radius: 6px;
+  color: #fffdf8;
+  background: color-mix(in srgb, var(--trend-color) 78%, #19323c);
+}
+
+.trend-chart-active-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-region {
+  position: relative;
+  z-index: 2;
+  border: 2px solid var(--trend-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--trend-color) 9%, transparent);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 252, 246, 0.62),
+    0 0 0 2px rgba(255, 252, 246, 0.58);
+}
+
+.trend-region span {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: color-mix(in srgb, var(--trend-color) 76%, #19202a);
+  background: rgba(255, 252, 246, 0.94);
+  box-shadow: 0 6px 12px rgba(25, 32, 42, 0.1);
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.trend-region--network span {
+  top: auto;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .detail-panel {
@@ -659,7 +1007,8 @@ h1 {
 
 @media (max-width: 760px) {
   .app-shell {
-    width: min(calc(100% - 20px), 1680px);
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
     padding-top: 10px;
   }
 
@@ -677,7 +1026,8 @@ h1 {
 
   .controls,
   .search-box input,
-  .select-box select {
+  .select-box select,
+  .trend-toggle {
     width: 100%;
     min-width: 0;
   }
@@ -691,6 +1041,10 @@ h1 {
   .search-box,
   .select-box {
     width: 100%;
+  }
+
+  .trend-toggle {
+    justify-content: start;
   }
 
   .periodic-panel {
