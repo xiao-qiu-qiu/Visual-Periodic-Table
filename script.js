@@ -38,6 +38,34 @@ const phaseColors = {
   unknown: "#a5a8ad",
 };
 
+const valenceTypeNames = {
+  positive: "固定正价",
+  variable: "可变正价",
+  mixed: "正负皆有",
+  negative: "常见负价",
+  stable: "稳定零价",
+  predicted: "预测/少见",
+};
+
+const valenceTypeColors = {
+  positive: "#d9a441",
+  variable: "#c8736a",
+  mixed: "#8f73c7",
+  negative: "#4aa99f",
+  stable: "#7f9cf5",
+  predicted: "#9aa0a6",
+};
+
+const valenceLevelStops = [
+  { value: -4, color: "#3f7fc0", label: "-4" },
+  { value: -2, color: "#41aaa0", label: "-2" },
+  { value: 0, color: "#a5a8ad", label: "0" },
+  { value: 2, color: "#e6c14f", label: "+2" },
+  { value: 4, color: "#e28a43", label: "+4" },
+  { value: 6, color: "#d85f55", label: "+6" },
+  { value: 8, color: "#8f62bc", label: "+8" },
+];
+
 const blockNames = {
   s: "s 区",
   p: "p 区",
@@ -133,6 +161,11 @@ const modeMeta = {
   block: {
     title: "电子分区：s、d、sd、p、f 区",
     description: "按高中常见分区着色，并用外框标出每个分区的位置。s 区在左侧，p 区在右侧，d 区和 sd 区位于过渡金属区域，f 区单独展开在下方。",
+    unit: "",
+  },
+  valence: {
+    title: "常见价态：颜色显示价态高低",
+    description: "元素格内显示高中常见化合价。默认按最高主价态着色，也可以在周期表中间切换为按类型着色。",
     unit: "",
   },
   melting: {
@@ -343,6 +376,165 @@ const elements = rows
     };
   });
 
+const valenceData = {
+  H: { states: ["+1", "-1"], main: "+1", note: "金属氢化物中可为 -1" },
+  He: { states: ["0"], main: "0" },
+  Li: { states: ["+1"], main: "+1" },
+  Be: { states: ["+2"], main: "+2" },
+  B: { states: ["+3"], main: "+3" },
+  C: { states: ["-4", "+2", "+4"], main: "+4" },
+  N: { states: ["-3", "+3", "+5"], main: "-3 / +5" },
+  O: { states: ["-2", "-1", "+2"], main: "-2", note: "过氧化物中常为 -1" },
+  F: { states: ["-1"], main: "-1" },
+  Ne: { states: ["0"], main: "0" },
+  Na: { states: ["+1"], main: "+1" },
+  Mg: { states: ["+2"], main: "+2" },
+  Al: { states: ["+3"], main: "+3" },
+  Si: { states: ["-4", "+4"], main: "+4" },
+  P: { states: ["-3", "+3", "+5"], main: "+5" },
+  S: { states: ["-2", "+4", "+6"], main: "+6" },
+  Cl: { states: ["-1", "+1", "+3", "+5", "+7"], main: "-1 / +7" },
+  Ar: { states: ["0"], main: "0" },
+  K: { states: ["+1"], main: "+1" },
+  Ca: { states: ["+2"], main: "+2" },
+  Sc: { states: ["+3"], main: "+3" },
+  Ti: { states: ["+2", "+3", "+4"], main: "+4" },
+  V: { states: ["+2", "+3", "+4", "+5"], main: "+5" },
+  Cr: { states: ["+2", "+3", "+6"], main: "+3 / +6" },
+  Mn: { states: ["+2", "+4", "+6", "+7"], main: "+2 / +7" },
+  Fe: { states: ["+2", "+3"], main: "+2 / +3" },
+  Co: { states: ["+2", "+3"], main: "+2 / +3" },
+  Ni: { states: ["+2", "+3"], main: "+2" },
+  Cu: { states: ["+1", "+2"], main: "+2" },
+  Zn: { states: ["+2"], main: "+2" },
+  Ga: { states: ["+3"], main: "+3" },
+  Ge: { states: ["-4", "+2", "+4"], main: "+4" },
+  As: { states: ["-3", "+3", "+5"], main: "+3 / +5" },
+  Se: { states: ["-2", "+4", "+6"], main: "-2 / +6" },
+  Br: { states: ["-1", "+1", "+3", "+5", "+7"], main: "-1" },
+  Kr: { states: ["0", "+2"], main: "0" },
+  Rb: { states: ["+1"], main: "+1" },
+  Sr: { states: ["+2"], main: "+2" },
+  Y: { states: ["+3"], main: "+3" },
+  Zr: { states: ["+4"], main: "+4" },
+  Nb: { states: ["+3", "+5"], main: "+5" },
+  Mo: { states: ["+2", "+3", "+4", "+6"], main: "+6" },
+  Tc: { states: ["+4", "+7"], main: "+7" },
+  Ru: { states: ["+3", "+4", "+8"], main: "+3 / +4" },
+  Rh: { states: ["+3"], main: "+3" },
+  Pd: { states: ["+2", "+4"], main: "+2" },
+  Ag: { states: ["+1"], main: "+1" },
+  Cd: { states: ["+2"], main: "+2" },
+  In: { states: ["+1", "+3"], main: "+3" },
+  Sn: { states: ["+2", "+4"], main: "+2 / +4" },
+  Sb: { states: ["-3", "+3", "+5"], main: "+3 / +5" },
+  Te: { states: ["-2", "+4", "+6"], main: "-2 / +6" },
+  I: { states: ["-1", "+1", "+3", "+5", "+7"], main: "-1" },
+  Xe: { states: ["0", "+2", "+4", "+6", "+8"], main: "0" },
+  Cs: { states: ["+1"], main: "+1" },
+  Ba: { states: ["+2"], main: "+2" },
+  La: { states: ["+3"], main: "+3" },
+  Ce: { states: ["+3", "+4"], main: "+3" },
+  Pr: { states: ["+3", "+4"], main: "+3" },
+  Nd: { states: ["+3"], main: "+3" },
+  Pm: { states: ["+3"], main: "+3" },
+  Sm: { states: ["+2", "+3"], main: "+3" },
+  Eu: { states: ["+2", "+3"], main: "+3" },
+  Gd: { states: ["+3"], main: "+3" },
+  Tb: { states: ["+3", "+4"], main: "+3" },
+  Dy: { states: ["+3"], main: "+3" },
+  Ho: { states: ["+3"], main: "+3" },
+  Er: { states: ["+3"], main: "+3" },
+  Tm: { states: ["+2", "+3"], main: "+3" },
+  Yb: { states: ["+2", "+3"], main: "+3" },
+  Lu: { states: ["+3"], main: "+3" },
+  Hf: { states: ["+4"], main: "+4" },
+  Ta: { states: ["+5"], main: "+5" },
+  W: { states: ["+4", "+6"], main: "+6" },
+  Re: { states: ["+4", "+6", "+7"], main: "+7" },
+  Os: { states: ["+4", "+6", "+8"], main: "+4" },
+  Ir: { states: ["+3", "+4"], main: "+3 / +4" },
+  Pt: { states: ["+2", "+4"], main: "+2 / +4" },
+  Au: { states: ["+1", "+3"], main: "+3" },
+  Hg: { states: ["+1", "+2"], main: "+2" },
+  Tl: { states: ["+1", "+3"], main: "+1" },
+  Pb: { states: ["+2", "+4"], main: "+2" },
+  Bi: { states: ["+3", "+5"], main: "+3" },
+  Po: { states: ["-2", "+2", "+4", "+6"], main: "+4" },
+  At: { states: ["-1", "+1", "+3", "+5", "+7"], main: "-1" },
+  Rn: { states: ["0", "+2"], main: "0" },
+  Fr: { states: ["+1"], main: "+1" },
+  Ra: { states: ["+2"], main: "+2" },
+  Ac: { states: ["+3"], main: "+3" },
+  Th: { states: ["+4"], main: "+4" },
+  Pa: { states: ["+5"], main: "+5" },
+  U: { states: ["+3", "+4", "+5", "+6"], main: "+6" },
+  Np: { states: ["+3", "+4", "+5", "+6", "+7"], main: "+5 / +6" },
+  Pu: { states: ["+3", "+4", "+5", "+6"], main: "+4" },
+  Am: { states: ["+3"], main: "+3" },
+  Cm: { states: ["+3"], main: "+3" },
+  Bk: { states: ["+3", "+4"], main: "+3" },
+  Cf: { states: ["+3"], main: "+3" },
+  Es: { states: ["+3"], main: "+3" },
+  Fm: { states: ["+3"], main: "+3" },
+  Md: { states: ["+2", "+3"], main: "+3" },
+  No: { states: ["+2", "+3"], main: "+2" },
+  Lr: { states: ["+3"], main: "+3" },
+  Rf: { states: ["+4"], main: "+4", type: "predicted" },
+  Db: { states: ["+5"], main: "+5", type: "predicted" },
+  Sg: { states: ["+6"], main: "+6", type: "predicted" },
+  Bh: { states: ["+7"], main: "+7", type: "predicted" },
+  Hs: { states: ["+8"], main: "+8", type: "predicted" },
+  Mt: { states: ["预测"], main: "预测", type: "predicted" },
+  Ds: { states: ["预测"], main: "预测", type: "predicted" },
+  Rg: { states: ["预测"], main: "预测", type: "predicted" },
+  Cn: { states: ["+2"], main: "+2", type: "predicted" },
+  Nh: { states: ["+1", "+3"], main: "+1", type: "predicted" },
+  Fl: { states: ["+2", "+4"], main: "+2", type: "predicted" },
+  Mc: { states: ["+1", "+3"], main: "+1", type: "predicted" },
+  Lv: { states: ["-2", "+2", "+4"], main: "+2", type: "predicted" },
+  Ts: { states: ["-1", "+1", "+3", "+5"], main: "-1", type: "predicted" },
+  Og: { states: ["0"], main: "0", type: "predicted" },
+};
+
+const valenceQuickGuide = [
+  {
+    title: "主族速查",
+    items: [
+      { label: "IA", value: "+1", tone: "positive" },
+      { label: "IIA", value: "+2", tone: "positive" },
+      { label: "IIIA", value: "+3", tone: "positive" },
+      { label: "IVA", value: "-4 / +4", tone: "mixed" },
+      { label: "VA", value: "-3 / +3 / +5", tone: "mixed" },
+      { label: "VIA", value: "-2 / +4 / +6", tone: "mixed" },
+      { label: "VIIA", value: "-1 / +1 / +3 / +5 / +7", tone: "mixed" },
+      { label: "0族", value: "0", tone: "stable" },
+    ],
+  },
+  {
+    title: "高频变价",
+    items: [
+      { label: "Fe", value: "+2 / +3", symbol: "Fe", tone: "variable" },
+      { label: "Cu", value: "+1 / +2", symbol: "Cu", tone: "variable" },
+      { label: "Mn", value: "+2 / +4 / +6 / +7", symbol: "Mn", tone: "variable" },
+      { label: "Cr", value: "+2 / +3 / +6", symbol: "Cr", tone: "variable" },
+      { label: "Ag", value: "+1", symbol: "Ag", tone: "positive" },
+      { label: "Zn", value: "+2", symbol: "Zn", tone: "positive" },
+    ],
+  },
+  {
+    title: "易混提醒",
+    items: [
+      { label: "H", value: "+1 / -1", symbol: "H", tone: "mixed" },
+      { label: "O", value: "-2 / -1 / +2", symbol: "O", tone: "mixed" },
+      { label: "F", value: "-1", symbol: "F", tone: "negative" },
+      { label: "Al", value: "+3", symbol: "Al", tone: "positive" },
+      { label: "Sn", value: "+2 / +4", symbol: "Sn", tone: "variable" },
+      { label: "Pb", value: "+2 / +4", symbol: "Pb", tone: "variable" },
+    ],
+  },
+];
+
 const thermalData = {
   1: [-259.14, -252.87],
   2: [null, -268.93],
@@ -453,6 +645,7 @@ elements.forEach((element) => {
   const [melting = null, boiling = null] = thermalData[element.z] || [];
   element.melting = melting;
   element.boiling = boiling;
+  element.valence = valenceForElement(element);
 });
 
 const ranges = {
@@ -485,6 +678,7 @@ const state = {
   groupFilter: "all",
   showTrendGuides: true,
   trendView: "chart",
+  valenceView: "level",
   ionExceptionPreview: false,
   ionExceptionLocked: false,
 };
@@ -494,6 +688,8 @@ const periodicPanel = document.querySelector(".periodic-panel");
 const legend = document.querySelector("#legend");
 const modeTitle = document.querySelector("#modeTitle");
 const modeDescription = document.querySelector("#modeDescription");
+const valenceBoard = document.querySelector("#valenceBoard");
+const valenceModeButton = document.querySelector("[data-valence-mode]");
 const searchInput = document.querySelector("#searchInput");
 const groupSelect = document.querySelector("#groupSelect");
 const trendGuideToggle = document.querySelector("#trendGuideToggle");
@@ -504,6 +700,70 @@ function displayPosition(element) {
   if (element.category === "lanthanide") return { row: 8, col: element.z - 54 };
   if (element.category === "actinide") return { row: 9, col: element.z - 86 };
   return { row: element.period, col: element.group };
+}
+
+function inferValenceType(element, states) {
+  if (!states.length || states.some((stateValue) => stateValue === "预测")) return "predicted";
+  if (states.includes("0") && element.category === "noble") return "stable";
+  const hasPositive = states.some((stateValue) => stateValue.startsWith("+"));
+  const hasNegative = states.some((stateValue) => stateValue.startsWith("-"));
+  if (hasPositive && hasNegative) return "mixed";
+  if (hasNegative) return "negative";
+  if (states.length > 1) return "variable";
+  return "positive";
+}
+
+function valenceForElement(element) {
+  const data = valenceData[element.symbol] || { states: [], main: "暂无" };
+  const states = data.states || [];
+  return {
+    states,
+    main: data.main || states[0] || "暂无",
+    type: data.type || inferValenceType(element, states),
+    note: data.note || "",
+  };
+}
+
+function formatValenceList(element) {
+  const states = element.valence?.states || [];
+  if (!states.length) return "暂无常用值";
+  return states.join(" / ");
+}
+
+function valenceBadgeText(element) {
+  const main = element.valence?.main || "暂无";
+  if (main === "预测") return "预测";
+  return main.replaceAll(" / ", "/");
+}
+
+function numericValenceValues(values) {
+  return values
+    .flatMap((value) => String(value).match(/[+-]?\d+/g) || [])
+    .map(Number)
+    .filter((value) => Number.isFinite(value));
+}
+
+function valenceLevelValue(element) {
+  const mainValues = numericValenceValues([element.valence?.main]);
+  if (mainValues.length) return Math.max(...mainValues);
+  const stateValues = numericValenceValues(element.valence?.states || []);
+  if (stateValues.length) return Math.max(...stateValues);
+  return null;
+}
+
+function valenceLevelColor(element) {
+  const value = valenceLevelValue(element);
+  if (value === null) return valenceTypeColors.predicted;
+
+  const stops = valenceLevelStops;
+  if (value <= stops[0].value) return stops[0].color;
+  if (value >= stops[stops.length - 1].value) return stops[stops.length - 1].color;
+
+  const upperIndex = stops.findIndex((stop) => value <= stop.value);
+  const lower = stops[upperIndex - 1];
+  const upper = stops[upperIndex];
+  const t = (value - lower.value) / (upper.value - lower.value);
+  return mixHex(lower.color, upper.color, t);
 }
 
 function metallicity(element) {
@@ -601,6 +861,7 @@ function formatValue(element) {
   if (state.mode === "category") return categoryNames[element.category];
   if (state.mode === "phase") return phaseNames[element.phase];
   if (state.mode === "block") return blockNames[elementBlock(element)];
+  if (state.mode === "valence") return `${formatValenceList(element)}（主价态 ${element.valence.main}）`;
   if (value === null) return "暂无";
   if (state.mode === "metallicity") return `${Math.round(value * 100)}%`;
   return `${value}${unit ? ` ${unit}` : ""}`;
@@ -625,6 +886,10 @@ function colorForElement(element) {
   if (state.mode === "category") return categoryColors[element.category];
   if (state.mode === "phase") return phaseColors[element.phase];
   if (state.mode === "block") return blockColors[elementBlock(element)];
+  if (state.mode === "valence") {
+    if (state.valenceView === "type") return valenceTypeColors[element.valence.type] || valenceTypeColors.predicted;
+    return valenceLevelColor(element);
+  }
   const value = valueForMode(element);
   return heatColor(value, state.mode);
 }
@@ -1118,6 +1383,37 @@ function createIonizationExceptionFocus(pairs) {
   });
 }
 
+function createValenceViewToggle() {
+  if (state.mode !== "valence") return;
+
+  const panel = document.createElement("div");
+  panel.className = "valence-view-card";
+  panel.style.gridRow = 1;
+  panel.style.gridColumn = "3 / span 10";
+  panel.setAttribute("aria-label", "价态着色方式");
+  panel.innerHTML = `
+    <div>
+      <strong>价态颜色</strong>
+      <span>${state.valenceView === "level" ? "暖色越深，最高主价态越高" : "按价态类型分组"}</span>
+    </div>
+    <div class="valence-view-toggle" role="group" aria-label="价态着色切换">
+      <button class="valence-view-button ${state.valenceView === "level" ? "active" : ""}" data-valence-view="level" type="button">高低</button>
+      <button class="valence-view-button ${state.valenceView === "type" ? "active" : ""}" data-valence-view="type" type="button">类型</button>
+    </div>
+  `;
+  panel.querySelectorAll("[data-valence-view]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.valenceView = button.dataset.valenceView;
+      updateModeText();
+      renderLegend();
+      renderTable();
+      updateDetail();
+    });
+  });
+  table.append(panel);
+}
+
 function renderTable() {
   table.innerHTML = "";
   const ionPairs = canShowIonizationExceptions() ? ionizationExceptionPairs() : [];
@@ -1132,6 +1428,7 @@ function renderTable() {
   createBlockGuides();
   createPlaceholders();
   createTrendGuides();
+  createValenceViewToggle();
   createIonizationExceptionButton(ionPairs);
   createIonizationExceptionFocus(ionPairs);
 
@@ -1179,6 +1476,7 @@ function badgeText(element) {
   if (state.mode === "category") return categoryNames[element.category].slice(0, 2);
   if (state.mode === "phase") return phaseNames[element.phase];
   if (state.mode === "block") return blockNames[elementBlock(element)].replace(" 区", "");
+  if (state.mode === "valence") return valenceBadgeText(element);
   const value = valueForMode(element);
   if (value === null) return "—";
   if (state.mode === "metallicity") return Math.round(value * 100);
@@ -1253,6 +1551,10 @@ function updateDetail() {
   document.querySelector("#detailEN").textContent = element.electronegativity === null ? "暂无常用值" : element.electronegativity.toFixed(2);
   document.querySelector("#detailIE").textContent = element.ionization === null ? "暂无常用值" : `${element.ionization} kJ/mol`;
   document.querySelector("#detailRadius").textContent = element.radius === null ? "暂无常用值" : `${element.radius} pm`;
+  document.querySelector("#detailValence").textContent = element.valence.note
+    ? `${formatValenceList(element)} · ${element.valence.note}`
+    : formatValenceList(element);
+  document.querySelector("#detailMainValence").textContent = element.valence.main;
   document.querySelector("#detailMelting").textContent = formatTemperature(element.melting);
   document.querySelector("#detailBoiling").textContent = formatTemperature(element.boiling);
   document.querySelector("#detailPhase").textContent = phaseNames[element.phase];
@@ -1280,14 +1582,22 @@ function applyFilters() {
   });
 }
 
+function updateModeText() {
+  modeTitle.textContent = modeMeta[state.mode].title;
+  if (state.mode === "valence" && state.valenceView === "type") {
+    modeDescription.textContent = "元素格内显示高中常见化合价。当前按固定正价、可变正价、正负皆有、常见负价和稳定零价分组着色。";
+    return;
+  }
+  modeDescription.textContent = modeMeta[state.mode].description;
+}
+
 function updateMode(mode) {
   state.mode = mode;
   clearIonExceptionFocus();
   document.querySelectorAll(".mode-button").forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === mode);
   });
-  modeTitle.textContent = modeMeta[mode].title;
-  modeDescription.textContent = modeMeta[mode].description;
+  updateModeText();
   renderLegend();
   renderTable();
 }
@@ -1306,6 +1616,14 @@ function renderLegend() {
     Object.entries(blockColors).forEach(([key, color]) => addLegendItem(color, blockNames[key]));
     return;
   }
+  if (state.mode === "valence") {
+    if (state.valenceView === "type") {
+      Object.entries(valenceTypeColors).forEach(([key, color]) => addLegendItem(color, valenceTypeNames[key]));
+      return;
+    }
+    valenceLevelStops.forEach((stop) => addLegendItem(stop.color, stop.label));
+    return;
+  }
   const items = state.mode === "radius" ? ["小", "中", "大"] : ["低", "中", "高"];
   items.forEach((label, index) => {
     const range = visualRanges[state.mode] || ranges[state.mode];
@@ -1321,8 +1639,54 @@ function addLegendItem(color, text) {
   legend.append(item);
 }
 
+function renderValenceBoard() {
+  if (!valenceBoard) return;
+  valenceBoard.innerHTML = valenceQuickGuide
+    .map(
+      (section) => `
+        <section class="valence-section">
+          <h3>${section.title}</h3>
+          <div class="valence-chip-grid">
+            ${section.items
+              .map((item) => {
+                const tone = item.tone || "positive";
+                const color = valenceTypeColors[tone] || valenceTypeColors.positive;
+                const symbolAttribute = item.symbol ? ` data-symbol="${item.symbol}"` : "";
+                const tag = item.symbol ? "button" : "div";
+                const typeAttribute = item.symbol ? ` type="button"` : "";
+                const staticClass = item.symbol ? "" : " valence-chip--static";
+                return `
+                  <${tag} class="valence-chip${staticClass}"${typeAttribute}${symbolAttribute} style="--valence-chip:${color}">
+                    <span>${item.label}</span>
+                    <b>${item.value}</b>
+                  </${tag}>
+                `;
+              })
+              .join("")}
+          </div>
+        </section>
+      `,
+    )
+    .join("");
+
+  valenceBoard.querySelectorAll("[data-symbol]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const element = elements.find((item) => item.symbol === chip.dataset.symbol);
+      if (!element) return;
+      updateMode("valence");
+      selectElement(element);
+      document.querySelector(".workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
 document.querySelectorAll(".mode-button").forEach((button) => {
   button.addEventListener("click", () => updateMode(button.dataset.mode));
+});
+
+valenceModeButton?.addEventListener("click", () => {
+  updateMode("valence");
+  document.querySelector(".workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 searchInput.addEventListener("input", (event) => {
@@ -1354,6 +1718,7 @@ const requestedMode =
 
 buildVisualRanges();
 createLabels();
+renderValenceBoard();
 if (modeMeta[requestedMode]) {
   updateMode(requestedMode);
 } else {

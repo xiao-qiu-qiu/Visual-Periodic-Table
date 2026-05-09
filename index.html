@@ -49,6 +49,7 @@
         <button class="mode-button" data-mode="radius" type="button">原子半径</button>
         <button class="mode-button" data-mode="metallicity" type="button">金属性</button>
         <button class="mode-button" data-mode="block" type="button">分区</button>
+        <button class="mode-button" data-mode="valence" type="button">常见价态</button>
         <button class="mode-button" data-mode="melting" type="button">熔点</button>
         <button class="mode-button" data-mode="boiling" type="button">沸点</button>
         <button class="mode-button" data-mode="phase" type="button">常温状态</button>
@@ -87,6 +88,8 @@
             <div><dt>电负性</dt><dd id="detailEN">2.20</dd></div>
             <div><dt>第一电离能</dt><dd id="detailIE">1312 kJ/mol</dd></div>
             <div><dt>原子半径</dt><dd id="detailRadius">53 pm</dd></div>
+            <div><dt>常见价态</dt><dd id="detailValence">+1 / -1</dd></div>
+            <div><dt>主价态</dt><dd id="detailMainValence">+1</dd></div>
             <div><dt>熔点</dt><dd id="detailMelting">-259.14 °C</dd></div>
             <div><dt>沸点</dt><dd id="detailBoiling">-252.87 °C</dd></div>
             <div><dt>常温状态</dt><dd id="detailPhase">气体</dd></div>
@@ -115,6 +118,17 @@
           </p>
         </div>
         <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="valence-panel" aria-labelledby="valenceTitle">
+        <div class="valence-panel-head">
+          <div>
+            <p class="eyebrow">化合价速查</p>
+            <h2 id="valenceTitle">常见价态表</h2>
+          </div>
+          <button class="valence-mode-button" data-valence-mode type="button">按价态着色</button>
+        </div>
+        <div class="valence-board" id="valenceBoard"></div>
       </section>
     </main>
 
