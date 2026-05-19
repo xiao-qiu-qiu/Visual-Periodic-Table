@@ -144,8 +144,8 @@ const modeMeta = {
     unit: "Pauling",
   },
   ionization: {
-    title: "第一电离能：越黑越难失去最外层电子",
-    description: "总体规律是同周期从左到右增大、同主族从上到下减小。稀有气体很高，碱金属很低，个别元素会因半充满或全充满结构出现小波动。",
+    title: "电离能：切换查看多级电离能",
+    description: "默认显示第 1 电离能。切换到 I2、I3 等级数时，颜色、曲线和右侧详情会同步显示继续移去电子所需的能量。",
     unit: "kJ/mol",
   },
   radius: {
@@ -194,7 +194,7 @@ const trendGuideMeta = {
     corner: "右上更强",
   },
   ionization: {
-    title: "第一电离能增大",
+    title: "第 1 电离能增大",
     direction: "up-right",
     horizontal: "同周期：左到右增大",
     vertical: "同主族：下到上增大",
@@ -535,6 +535,111 @@ const valenceQuickGuide = [
   },
 ];
 
+const ionizationEnergyData = {
+  1: [1312],
+  2: [2372.3, 5250.5],
+  3: [520.2, 7298.1, 11815],
+  4: [899.5, 1757.1, 14848.7, 21006.6],
+  5: [800.6, 2427.1, 3659.7, 25025.8, 32826.7],
+  6: [1086.5, 2352.6, 4620.5, 6222.7, 37831, 47277],
+  7: [1402.3, 2856, 4578.1, 7475, 9444.9, 53266.6],
+  8: [1313.9, 3388.3, 5300.5, 7469.2, 10989.5, 13326.5],
+  9: [1681, 3374.2, 6050.4, 8407.7, 11022.7, 15164.1],
+  10: [2080.7, 3952.3, 6122, 9371, 12177, 15238],
+  11: [495.8, 4562, 6910.3, 9543, 13354, 16613],
+  12: [737.7, 1450.7, 7732.7, 10542.5, 13630, 18020],
+  13: [577.5, 1816.7, 2744.8, 11577, 14842, 18379],
+  14: [786.5, 1577.1, 3231.6, 4355.5, 16091, 19805],
+  15: [1011.8, 1907, 2914.1, 4963.6, 6273.9, 21267],
+  16: [999.6, 2252, 3357, 4556, 7004.3, 8495.8],
+  17: [1251.2, 2298, 3822, 5158.6, 6542, 9362],
+  18: [1520.6, 2665.8, 3931, 5771, 7238, 8781],
+  19: [418.8, 3052, 4420, 5877, 7975, 9590],
+  20: [589.8, 1145.4, 4912.4, 6491, 8153, 10496],
+  21: [633.1, 1235, 2388.6, 7090.6, 8843, 10679],
+  22: [658.8, 1309.8, 2652.5, 4174.6, 9581, 11533],
+  23: [650.9, 1414, 2830, 4507, 6298.7, 12363],
+  24: [652.9, 1590.6, 2987, 4743, 6702, 8744.9],
+  25: [717.3, 1509, 3248, 4940, 6990, 9220],
+  26: [762.5, 1561.9, 2957, 5290, 7240, 9560],
+  27: [760.4, 1648, 3232, 4950, 7670, 9840],
+  28: [737.1, 1753, 3395, 5300, 7339, 10400],
+  29: [745.5, 1957.9, 3555, 5536, 7700, 9900],
+  30: [906.4, 1733.3, 3833, 5731, 7970, 10400],
+  31: [578.8, 1979.3, 2963, 6180],
+  32: [762, 1537.5, 3302.1, 4411, 9020],
+  33: [947, 1798, 2735, 4837, 6043, 12310],
+  34: [941, 2045, 2973.7, 4144, 6590, 7880],
+  35: [1139.9, 2103, 3470, 4560, 5760, 8550],
+  36: [1350.8, 2350.4, 3565, 5070, 6240, 7570],
+  37: [403, 2633, 3860, 5080, 6850, 8140],
+  38: [549.5, 1064.2, 4138, 5500, 6910, 8760],
+  39: [600, 1180, 1980, 5847, 7430, 8970],
+  40: [640.1, 1270, 2218, 3313, 7752, 9500],
+  41: [652.1, 1380, 2416, 3700, 4877, 9847],
+  42: [684.3, 1560, 2618, 4480, 5257, 6640.8],
+  43: [702, 1470, 2850],
+  44: [710.2, 1620, 2747],
+  45: [719.7, 1740, 2997],
+  46: [804.4, 1870, 3177],
+  47: [731, 2070, 3361],
+  48: [867.8, 1631.4, 3616],
+  49: [558.3, 1820.7, 2704, 5210],
+  50: [708.6, 1411.8, 2943, 3930.3, 7456],
+  51: [834, 1594.9, 2440, 4260, 5400, 10400],
+  52: [869.3, 1790, 2698, 3610, 5668, 6820],
+  53: [1008.4, 1845.9, 3180],
+  54: [1170.4, 2046.4, 3099.4],
+  55: [375.7, 2234.3, 3400],
+  56: [502.9, 965.2, 3600],
+  57: [538.1, 1067, 1850.3, 4819, 5940],
+  58: [534.4, 1050, 1949, 3547, 6325, 7490],
+  59: [527, 1020, 2086, 3761, 5551],
+  60: [533.1, 1040, 2130, 3900],
+  61: [540, 1050, 2150, 3970],
+  62: [544.5, 1070, 2260, 3990],
+  63: [547.1, 1085, 2404, 4120],
+  64: [593.4, 1170, 1990, 4250],
+  65: [565.8, 1110, 2114, 3839],
+  66: [573, 1130, 2200, 3990],
+  67: [581, 1140, 2204, 4100],
+  68: [589.3, 1150, 2194, 4120],
+  69: [596.7, 1160, 2285, 4120],
+  70: [603.4, 1174.8, 2417, 4203],
+  71: [523.5, 1340, 2022.3, 4370, 6445],
+  72: [658.5, 1440, 2250, 3216],
+  73: [761, 1500],
+  74: [770, 1700],
+  75: [760, 1260, 2510, 3640],
+  76: [840, 1600],
+  77: [880, 1600],
+  78: [870, 1791],
+  79: [890.1, 1980],
+  80: [1007.1, 1810, 3300],
+  81: [589.4, 1971, 2878],
+  82: [715.6, 1450.5, 3081.5, 4083, 6640],
+  83: [703, 1610, 2466, 4370, 5400, 8520],
+  84: [812.1],
+  85: [920],
+  86: [1037],
+  87: [380],
+  88: [509.3, 979],
+  89: [499, 1170],
+  90: [587, 1110, 1930, 2780],
+  91: [568],
+  92: [597.6, 1420],
+  93: [604.5],
+  94: [584.7],
+  95: [578],
+  96: [581],
+  97: [601],
+  98: [608],
+  99: [619],
+  100: [627],
+  101: [635],
+  102: [642],
+};
+
 const thermalData = {
   1: [-259.14, -252.87],
   2: [null, -268.93],
@@ -645,6 +750,8 @@ elements.forEach((element) => {
   const [melting = null, boiling = null] = thermalData[element.z] || [];
   element.melting = melting;
   element.boiling = boiling;
+  element.ionizationEnergies = ionizationEnergyData[element.z] || (element.ionization === null ? [] : [element.ionization]);
+  element.ionization = element.ionizationEnergies[0] ?? element.ionization;
   element.valence = valenceForElement(element);
 });
 
@@ -669,6 +776,7 @@ const palettes = {
 const visualRanges = {};
 const trendChartGeometry = { width: 560, height: 190, left: 32, right: 8, top: 14, bottom: 16 };
 const absoluteZeroCelsius = -273.15;
+const ionizationLevelOptions = [1, 2, 3, 4, 5, 6];
 
 const state = {
   mode: "category",
@@ -678,6 +786,7 @@ const state = {
   groupFilter: "all",
   showTrendGuides: true,
   trendView: "chart",
+  ionizationLevel: 1,
   valenceView: "level",
   ionExceptionPreview: false,
   ionExceptionLocked: false,
@@ -766,6 +875,24 @@ function valenceLevelColor(element) {
   return mixHex(lower.color, upper.color, t);
 }
 
+function ionizationLevelName(level = state.ionizationLevel) {
+  return `第 ${level} 电离能`;
+}
+
+function ionizationValue(element, level = state.ionizationLevel) {
+  return element.ionizationEnergies?.[level - 1] ?? null;
+}
+
+function formatIonizationValue(value) {
+  if (value === null || Number.isNaN(value)) return "暂无常用值";
+  const rounded = Math.abs(value) >= 100 ? Number(value.toFixed(1)).toLocaleString("zh-CN") : value.toLocaleString("zh-CN");
+  return `${rounded} kJ/mol`;
+}
+
+function ionizationRange(level = state.ionizationLevel) {
+  return visualRanges.ionization?.[level] || ranges.ionization;
+}
+
 function metallicity(element) {
   const periodScore = (element.period - 1) / 6;
   const groupScore = 1 - (Math.min(element.group, 18) - 1) / 17;
@@ -793,7 +920,7 @@ function elementBlock(element) {
 }
 
 function buildVisualRanges() {
-  ["electronegativity", "ionization", "radius", "melting", "boiling"].forEach((mode) => {
+  ["electronegativity", "radius", "melting", "boiling"].forEach((mode) => {
     const values = elements
       .map((element) => element[mode])
       .filter((value) => value !== null)
@@ -801,6 +928,17 @@ function buildVisualRanges() {
     const lower = values[Math.floor(values.length * 0.04)];
     const upper = values[Math.ceil(values.length * 0.96) - 1];
     visualRanges[mode] = [lower, upper];
+  });
+  visualRanges.ionization = {};
+  ionizationLevelOptions.forEach((level) => {
+    const values = elements
+      .map((element) => ionizationValue(element, level))
+      .filter((value) => value !== null)
+      .sort((a, b) => a - b);
+    if (!values.length) return;
+    const lower = values[Math.floor(values.length * 0.04)];
+    const upper = values[Math.ceil(values.length * 0.96) - 1];
+    visualRanges.ionization[level] = [lower, upper];
   });
   visualRanges.metallicity = [0, 1];
 }
@@ -831,7 +969,7 @@ function applyTextContrast(card, background) {
 
 function heatColor(value, mode) {
   if (value === null || Number.isNaN(value)) return "#d1d5db";
-  const [min, max] = visualRanges[mode] || ranges[mode];
+  const [min, max] = mode === "ionization" ? ionizationRange() : visualRanges[mode] || ranges[mode];
   const raw = (value - min) / (max - min);
   const t = Math.max(0, Math.min(1, raw));
   const eased = Math.pow(t, 0.72);
@@ -843,7 +981,7 @@ function heatColor(value, mode) {
 
 function propertyValue(element, mode) {
   if (mode === "electronegativity") return element.electronegativity;
-  if (mode === "ionization") return element.ionization;
+  if (mode === "ionization") return ionizationValue(element);
   if (mode === "radius") return element.radius;
   if (mode === "melting") return element.melting;
   if (mode === "boiling") return element.boiling;
@@ -863,6 +1001,7 @@ function formatValue(element) {
   if (state.mode === "block") return blockNames[elementBlock(element)];
   if (state.mode === "valence") return `${formatValenceList(element)}（主价态 ${element.valence.main}）`;
   if (value === null) return "暂无";
+  if (state.mode === "ionization") return formatIonizationValue(value);
   if (state.mode === "metallicity") return `${Math.round(value * 100)}%`;
   return `${value}${unit ? ` ${unit}` : ""}`;
 }
@@ -961,7 +1100,8 @@ function createBlockGuides() {
 }
 
 function trendColor() {
-  if (state.mode === "electronegativity" || state.mode === "ionization") return heatColor(ranges[state.mode][1], state.mode);
+  if (state.mode === "ionization") return heatColor(ionizationRange()[1], state.mode);
+  if (state.mode === "electronegativity") return heatColor(ranges[state.mode][1], state.mode);
   if (state.mode === "radius" || state.mode === "metallicity") return heatColor(ranges[state.mode][1], state.mode);
   if (state.mode === "melting" || state.mode === "boiling") return heatColor(ranges[state.mode][1], state.mode);
   return "#147c72";
@@ -1165,34 +1305,68 @@ function createTrendMap(guide) {
 
 function createTrendViewToggle(guide) {
   if (guide.direction === "thermal") return "";
+  const isIonizationPlaceholder = state.mode === "ionization" && state.ionizationLevel !== 1;
 
   return `
-    <div class="trend-view-toggle" role="group" aria-label="辅助图切换">
+    <div class="trend-view-toggle${isIonizationPlaceholder ? " trend-view-toggle--placeholder" : ""}" role="group" aria-label="辅助图切换">
       <button class="trend-view-button ${state.trendView === "map" ? "active" : ""}" data-trend-view="map" type="button">方向</button>
       <button class="trend-view-button ${state.trendView === "chart" ? "active" : ""}" data-trend-view="chart" type="button">曲线</button>
     </div>
   `;
 }
 
+function createIonizationLevelToggle() {
+  if (state.mode !== "ionization") return "";
+
+  return `
+    <div class="ionization-level-toggle" role="group" aria-label="电离能级数切换">
+      ${ionizationLevelOptions
+        .map(
+          (level) => `
+            <button class="ionization-level-button ${state.ionizationLevel === level ? "active" : ""}" data-ionization-level="${level}" type="button">
+              I${level}
+            </button>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function createTrendGuideCard(guide) {
   const card = document.createElement("div");
-  card.className = `trend-guide-card trend-guide-card--${guide.direction}`;
+  card.className = `trend-guide-card trend-guide-card--${guide.direction}${state.mode === "ionization" ? " trend-guide-card--ionization" : ""}`;
   card.style.setProperty("--trend-color", trendColor());
   card.style.gridRow = "1 / span 3";
   card.style.gridColumn = "3 / span 10";
   card.setAttribute("aria-label", `${guide.title}辅助图`);
   card.innerHTML = `
     <div class="trend-guide-head">
-      <div class="trend-guide-title">${guide.title}</div>
+      <div class="trend-guide-title">${state.mode === "ionization" ? `${ionizationLevelName()}对比` : guide.title}</div>
+      ${createIonizationLevelToggle()}
       ${createTrendViewToggle(guide)}
     </div>
-    ${guide.direction === "thermal" || state.trendView === "chart" ? createTrendChart() : createTrendMap(guide)}
+    ${guide.direction === "thermal" || state.trendView === "chart" || state.mode === "ionization" && state.ionizationLevel !== 1 ? createTrendChart() : createTrendMap(guide)}
   `;
   card.querySelectorAll("[data-trend-view]").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
       state.trendView = button.dataset.trendView;
       renderTable();
+    });
+  });
+  card.querySelectorAll("[data-ionization-level]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.ionizationLevel = Number(button.dataset.ionizationLevel);
+      if (state.ionizationLevel !== 1) {
+        state.trendView = "chart";
+        clearIonExceptionFocus();
+      }
+      updateModeText();
+      renderLegend();
+      renderTable();
+      updateDetail();
     });
   });
   table.append(card);
@@ -1262,7 +1436,8 @@ function updateTrendMarker(element = activeElement(), isHover = false) {
   if (!point) {
     marker.classList.add("hidden");
     chartWrap.classList.remove("is-hovering");
-    valueLabel.textContent = `${modeMeta[mode].title.split("：")[0]}：暂无数据`;
+    const metricName = mode === "ionization" ? ionizationLevelName() : modeMeta[mode].title.split("：")[0];
+    valueLabel.textContent = `${metricName}：暂无数据`;
     return;
   }
 
@@ -1289,7 +1464,7 @@ function ionizationExceptionPairs() {
 }
 
 function canShowIonizationExceptions() {
-  return state.showTrendGuides && state.mode === "ionization";
+  return state.showTrendGuides && state.mode === "ionization" && state.ionizationLevel === 1;
 }
 
 function shouldFocusIonizationExceptions() {
@@ -1479,6 +1654,7 @@ function badgeText(element) {
   if (state.mode === "valence") return valenceBadgeText(element);
   const value = valueForMode(element);
   if (value === null) return "—";
+  if (state.mode === "ionization") return Math.round(value).toLocaleString("zh-CN");
   if (state.mode === "metallicity") return Math.round(value * 100);
   if (state.mode === "melting" || state.mode === "boiling") return Math.round(value);
   return value;
@@ -1549,7 +1725,8 @@ function updateDetail() {
   document.querySelector("#detailCategory").textContent = `${categoryNames[element.category]} · ${formatPeriod(element)} · ${formatGroup(element)}`;
   document.querySelector("#detailSummary").textContent = element.summary;
   document.querySelector("#detailEN").textContent = element.electronegativity === null ? "暂无常用值" : element.electronegativity.toFixed(2);
-  document.querySelector("#detailIE").textContent = element.ionization === null ? "暂无常用值" : `${element.ionization} kJ/mol`;
+  document.querySelector("#detailIELabel").textContent = ionizationLevelName();
+  document.querySelector("#detailIE").textContent = formatIonizationValue(ionizationValue(element));
   document.querySelector("#detailRadius").textContent = element.radius === null ? "暂无常用值" : `${element.radius} pm`;
   document.querySelector("#detailValence").textContent = element.valence.note
     ? `${formatValenceList(element)} · ${element.valence.note}`
@@ -1560,7 +1737,10 @@ function updateDetail() {
   document.querySelector("#detailPhase").textContent = phaseNames[element.phase];
 
   const enHeight = element.electronegativity ? ((element.electronegativity - 0.7) / (3.98 - 0.7)) * 82 + 8 : 8;
-  const ieHeight = element.ionization ? ((element.ionization - 376) / (2372 - 376)) * 82 + 8 : 8;
+  const currentIE = ionizationValue(element);
+  const ieRange = ionizationRange();
+  const ieRatio = currentIE ? Math.max(0, Math.min(1, (currentIE - ieRange[0]) / (ieRange[1] - ieRange[0]))) : 0;
+  const ieHeight = ieRatio * 82 + 8;
   const radiusHeight = element.radius ? ((element.radius - 31) / (348 - 31)) * 82 + 8 : 8;
   document.querySelector("#barEN").style.height = `${enHeight}px`;
   document.querySelector("#barIE").style.height = `${ieHeight}px`;
@@ -1583,7 +1763,14 @@ function applyFilters() {
 }
 
 function updateModeText() {
-  modeTitle.textContent = modeMeta[state.mode].title;
+  modeTitle.textContent = state.mode === "ionization" ? `${ionizationLevelName()}：越深越难继续失电子` : modeMeta[state.mode].title;
+  if (state.mode === "ionization") {
+    modeDescription.textContent =
+      state.ionizationLevel === 1
+        ? "第 1 电离能仍保留周期律方向图和例外记忆；切到更高级数时，图表会改成曲线对比，更适合观察突然跃迁。"
+        : `${ionizationLevelName()}表示从 ${state.ionizationLevel - 1}+ 离子继续移去一个电子所需的能量。若某元素没有该级数据，格内显示为“—”。`;
+    return;
+  }
   if (state.mode === "valence" && state.valenceView === "type") {
     modeDescription.textContent = "元素格内显示高中常见化合价。当前按固定正价、可变正价、正负皆有、常见负价和稳定零价分组着色。";
     return;
@@ -1626,7 +1813,7 @@ function renderLegend() {
   }
   const items = state.mode === "radius" ? ["小", "中", "大"] : ["低", "中", "高"];
   items.forEach((label, index) => {
-    const range = visualRanges[state.mode] || ranges[state.mode];
+    const range = state.mode === "ionization" ? ionizationRange() : visualRanges[state.mode] || ranges[state.mode];
     const value = range[0] + (range[1] - range[0]) * (index / 2);
     addLegendItem(heatColor(value, state.mode), label);
   });

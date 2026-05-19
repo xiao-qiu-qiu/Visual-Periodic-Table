@@ -516,6 +516,22 @@ h1 {
   background: rgba(255, 255, 255, 0.62);
 }
 
+.trend-view-toggle--placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ionization-level-toggle {
+  display: inline-flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  overflow: hidden;
+  min-width: 240px;
+  border: 1px solid color-mix(in srgb, var(--trend-color) 28%, rgba(25, 32, 42, 0.12));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
 .trend-view-button {
   min-width: 40px;
   min-height: 24px;
@@ -529,9 +545,28 @@ h1 {
   line-height: 1;
 }
 
-.trend-view-button.active {
+.ionization-level-button {
+  min-width: 40px;
+  min-height: 24px;
+  border: 0;
+  padding: 0 8px;
+  color: rgba(25, 32, 42, 0.66);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.trend-view-button.active,
+.ionization-level-button.active {
   color: #fffdf8;
   background: color-mix(in srgb, var(--trend-color) 72%, #19323c);
+}
+
+.ionization-level-button:focus-visible {
+  outline: 3px solid rgba(20, 124, 114, 0.26);
+  outline-offset: 2px;
 }
 
 .trend-map-view {
@@ -709,6 +744,12 @@ h1 {
   font-weight: 900;
   line-height: 1;
   pointer-events: none;
+}
+
+.trend-guide-card--ionization .trend-chart-note {
+  top: 6px;
+  max-width: calc(100% - 80px);
+  background: rgba(255, 252, 246, 0.9);
 }
 
 .trend-chart-wrap.is-hovering .trend-chart-note {
@@ -1558,6 +1599,21 @@ h1 {
 
   .symbol {
     font-size: 1rem;
+  }
+
+  .trend-guide-head {
+    flex-wrap: wrap;
+  }
+
+  .ionization-level-toggle {
+    order: 3;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .ionization-level-button {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .value-badge {
